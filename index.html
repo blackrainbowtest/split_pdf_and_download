@@ -41,14 +41,17 @@
         }
         input, button {
             max-width: 350px;
-            min-height: 56px;
+            min-height: 52px;
             width: 100%;
             font-size: 24px;
             margin-top: 10px;
+            font-family: 'GHEA grapalat' serif;
         }
         #pages-per-file {
-            font-family: 'GHEA grapalat' serif;
             font-size: 40px;
+            padding-left: 40px;
+        }
+        #name-per-file {
             padding-left: 40px;
         }
         #split-btn {
@@ -70,6 +73,7 @@
             const dropZone = document.getElementById("drop-zone");
             const splitBtn = document.getElementById("split-btn");
             const pagesInput = document.getElementById("pages-per-file");
+            const filesName = document.getElementById("name-per-file");
             let file = null;
 
             dropZone.addEventListener("dragover", (e) => {
@@ -87,6 +91,9 @@
                 file = e.dataTransfer.files[0];
                 if (file && file.type === "application/pdf") {
                     splitBtn.disabled = false;
+                    dropZone.innerText = "Ֆայլը ընթեռնվել է, կարող եք սեղմել կոճակը";
+                    dropZone.style.color = 'gray';
+                    dropZone.style.borderColor = 'gray';
                 } else {
                     alert("Please drop a valid PDF file");
                 }
@@ -108,7 +115,9 @@
                         const pages = await newPdf.copyPages(pdfDoc, Array.from({ length: end - i }, (_, j) => i + j));
                         pages.forEach(page => newPdf.addPage(page));
                         const pdfBytes = await newPdf.save();
-                        zip.file(`split_part_${i / pagesPerFile + 1}.pdf`, pdfBytes);
+                        const baseName = filesName.value.trim() || "Հայցադիմումներ";
+                        const fileName = `${baseName}_${Math.floor(i / pagesPerFile) + 1}.pdf`;
+                        zip.file(fileName, pdfBytes);
                     }
 
                     zip.generateAsync({ type: "blob" }).then((zipBlob) => {
@@ -127,8 +136,9 @@
 </head>
 <body>
     <div id="root">
-        <div id="drop-zone">Drag and Drop PDF here</div>
-        <input type="number" id="pages-per-file" min="1" value="2" placeholder="Pages per file">
+        <div id="drop-zone">Քաշեք և նետեք PDF ֆայլը այստեղ</div>
+        <input type="text" id="name-per-file" value="Հայցադիմումներ" placeholder="Փաստաթղթերի անվանումը">
+        <input type="number" id="pages-per-file" min="1" value="2" placeholder="Յուրաքանչյուր փաստաթղթի էջերի քանակը">
         <button id="split-btn" disabled>Տարանջատել PDF և ներբեռնել ZIP</button>
     </div>
 </body>
