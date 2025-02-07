@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         #root {
             min-height: 100vh;
             display: flex;
@@ -22,6 +24,7 @@
             background-color: rgb(32, 32, 32);
             padding: 20px;
         }
+
         #drop-zone {
             max-width: 350px;
             width: 100%;
@@ -36,10 +39,13 @@
             margin-bottom: 15px;
             transition: background 0.3s;
         }
+
         #drop-zone:hover {
             background-color: #444;
         }
-        input, button {
+
+        input,
+        button {
             max-width: 350px;
             min-height: 52px;
             width: 100%;
@@ -47,18 +53,22 @@
             margin-top: 10px;
             font-family: 'GHEA grapalat' serif;
         }
+
         #pages-per-file {
             font-size: 40px;
             padding-left: 40px;
         }
+
         #name-per-file {
             padding-left: 40px;
         }
+
         #split-btn {
             border-radius: 5px;
             border: none;
             padding: 5px 15px;
         }
+
         #split-btn:enabled {
             background-color: #4A90E2;
             color: white;
@@ -68,7 +78,26 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script type="module">
         import { PDFDocument } from "https://cdn.jsdelivr.net/npm/pdf-lib@1.16.0/+esm";
-        
+
+        async function saveFile(blob) {
+            if (window.showSaveFilePicker) {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: "split_pdfs.zip",
+                    types: [{ description: "ZIP Archive", accept: { "application/zip": [".zip"] } }],
+                });
+                const writable = await handle.createWritable();
+                await writable.write(blob);
+                await writable.close();
+            } else {
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = "split_pdfs.zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             const dropZone = document.getElementById("drop-zone");
             const splitBtn = document.getElementById("split-btn");
@@ -121,12 +150,7 @@
                     }
 
                     zip.generateAsync({ type: "blob" }).then((zipBlob) => {
-                        const zipLink = document.createElement("a");
-                        zipLink.href = URL.createObjectURL(zipBlob);
-                        zipLink.download = "split_pdfs.zip";
-                        document.body.appendChild(zipLink);
-                        zipLink.click();
-                        document.body.removeChild(zipLink);
+                        saveFile(zipBlob);
                     });
                 };
                 reader.readAsArrayBuffer(file);
@@ -134,6 +158,7 @@
         });
     </script>
 </head>
+
 <body>
     <div id="root">
         <div id="drop-zone">Քաշեք և նետեք PDF ֆայլը այստեղ</div>
@@ -142,4 +167,5 @@
         <button id="split-btn" disabled>Տարանջատել PDF և ներբեռնել ZIP</button>
     </div>
 </body>
+
 </html>
