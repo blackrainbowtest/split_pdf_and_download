@@ -75,8 +75,6 @@
             color: white;
             cursor: pointer;
         }
-
-        
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script type="module">
@@ -98,6 +96,7 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
             }
         }
 
