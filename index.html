@@ -103,23 +103,27 @@
 
         document.addEventListener("DOMContentLoaded", () => {
             const dropZone = document.getElementById("drop-zone");
+            const fileInput = document.getElementById("file-input");
             const splitBtn = document.getElementById("split-btn");
             const pagesInput = document.getElementById("pages-per-file");
             const filesName = document.getElementById("name-per-file");
             let file = null;
 
+            // Drag over: visual feedback
             dropZone.addEventListener("dragover", (e) => {
                 e.preventDefault();
-                dropZone.style.backgroundColor = "#f0f8ff";
+                dropZone.style.backgroundColor = "rgba(255,255,255,0.04)";
             });
 
+            // Drag leave: restore default (CSS) background
             dropZone.addEventListener("dragleave", () => {
-                dropZone.style.backgroundColor = "#fff";
+                dropZone.style.backgroundColor = "";
             });
 
+            // Drop: use dropped file
             dropZone.addEventListener("drop", (e) => {
                 e.preventDefault();
-                dropZone.style.backgroundColor = "#fff";
+                dropZone.style.backgroundColor = "";
                 file = e.dataTransfer.files[0];
                 if (file && file.type === "application/pdf") {
                     splitBtn.disabled = false;
@@ -128,6 +132,28 @@
                     dropZone.style.borderColor = 'gray';
                 } else {
                     alert("Please drop a valid PDF file");
+                }
+            });
+
+            // Click on drop zone opens file picker
+            dropZone.addEventListener('click', () => {
+                fileInput.value = null;
+                fileInput.click();
+            });
+
+            // Handle file chosen via picker
+            fileInput.addEventListener('change', (e) => {
+                const chosen = e.target.files && e.target.files[0];
+                if (!chosen) return;
+                file = chosen;
+                if (file.type === 'application/pdf') {
+                    splitBtn.disabled = false;
+                    dropZone.innerText = "Ֆայլը ընտրված է, կարող եք սեղմել կոճակը";
+                    dropZone.style.color = 'gray';
+                    dropZone.style.borderColor = 'gray';
+                } else {
+                    alert('Please select a valid PDF file');
+                    file = null;
                 }
             });
 
@@ -165,6 +191,7 @@
 <body>
     <div id="root" class="">
         <div id="drop-zone">Քաշեք և նետեք PDF ֆայլը այստեղ</div>
+        <input type="file" id="file-input" accept="application/pdf" style="display:none">
         <input type="text" id="name-per-file" value="Հայցադիմումներ" placeholder="Փաստաթղթերի անվանումը">
         <input type="number" id="pages-per-file" min="1" value="2" placeholder="Յուրաքանչյուր փաստաթղթի էջերի քանակը">
         <button id="split-btn" disabled>Տարանջատել PDF և ներբեռնել ZIP</button>
