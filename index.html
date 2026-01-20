@@ -40,11 +40,29 @@
             border-radius: 10px;
             margin-bottom: 15px;
             transition: background 0.25s, border-color 0.25s;
+            cursor: pointer;
+            user-select: none;
         }
 
         #drop-zone:hover {
             background-color: rgba(255,255,255,0.04);
             border-color: #93C5FD;
+        }
+
+        #drop-zone.dragover {
+            background-color: rgba(255,255,255,0.06) !important;
+            border-color: #93C5FD;
+            color: #E0F2FE;
+            transform: scale(1.01);
+        }
+
+        #drop-zone:active {
+            transform: scale(0.99);
+        }
+
+        #drop-zone:hover {
+            cursor: pointer;
+            background-color: rgba(255,255,255,0.04);
         }
 
         input,
@@ -112,18 +130,18 @@
             // Drag over: visual feedback
             dropZone.addEventListener("dragover", (e) => {
                 e.preventDefault();
-                dropZone.style.backgroundColor = "rgba(255,255,255,0.04)";
+                dropZone.classList.add("dragover");
             });
 
             // Drag leave: restore default (CSS) background
             dropZone.addEventListener("dragleave", () => {
-                dropZone.style.backgroundColor = "";
+                dropZone.classList.remove("dragover");
             });
 
             // Drop: use dropped file
             dropZone.addEventListener("drop", (e) => {
                 e.preventDefault();
-                dropZone.style.backgroundColor = "";
+                dropZone.classList.remove("dragover");
                 file = e.dataTransfer.files[0];
                 if (file && file.type === "application/pdf") {
                     splitBtn.disabled = false;
