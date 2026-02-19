@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Merger</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'GHEA grapalat', serif;
+        }
+
+        #root {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-image: linear-gradient(180deg, rgba(8,12,20,0.9), rgba(2,6,12,0.95));
+            background-color: #0b1220;
+            padding: 20px;
+        }
+
+        #drop-zone {
+            max-width: 350px;
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #34D399;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #D1FAE5;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 20px;
+            cursor: pointer;
+        }
+
+        #drop-zone.dragover {
+            background-color: rgba(255,255,255,0.06);
+        }
+
+        input, button {
+            max-width: 350px;
+            width: 100%;
+            min-height: 52px;
+            font-size: 22px;
+            margin-top: 10px;
+        }
+
+        button:enabled {
+            background-color: #10B981;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        a {
+            margin-top: 20px;
+            color: #93C5FD;
+            font-size: 18px;
+            text-decoration: none;
+        }
+    </style>
+
+    <script type="module">
+        import { PDFDocument } from "https://cdn.jsdelivr.net/npm/pdf-lib@1.16.0/+esm";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const dropZone = document.getElementById("drop-zone");
+            const fileInput = document.getElementById("file-input");
+            const mergeBtn = document.getElementById("merge-btn");
+            const fileNameInput = document.getElementById("output-name");
+
+            let files = [];
+
+            dropZone.addEventListener("dragover", e => {
+                e.preventDefault();
+                dropZone.classList.add("dragover");
+            });
+
+            dropZone.addEventListener("dragleave", () => {
+                dropZone.classList.remove("dragover");
+            });
+
+            dropZone.addEventListener("drop", e => {
+                e.preventDefault();
+                dropZone.classList.remove("dragover");
+                files = Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf");
+                updateUI();
+            });
+
+            dropZone.addEventListener("click", () => {
+                fileInput.value = null;
+                fileInput.click();
+            });
+
+            fileInput.addEventListener("change", e => {
+                files = Array.from(e.target.files).filter(f => f.type === "application/pdf");
+                updateUI();
+            });
+
+            function updateUI() {
+                if (files.length > 0) {
+                    dropZone.innerText = `Ընտրված է ${files.length} PDF ֆայլ`;
+                    mergeBtn.disabled = false;
+                } else {
+                    dropZone.innerText = "Քաշեք կամ ընտրեք մի քանի PDF ֆայլ";
+                    mergeBtn.disabled = true;
+                }
+            }
+
+            mergeBtn.addEventListener("click", async () => {
+                if (!files.length) return;
+
+                const mergedPdf = await PDFDocument.create();
+
+                for (const file of files) {
+                    const bytes = await file.arrayBuffer();
+                    const pdf = await PDFDocument.load(bytes);
+                    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+                    pages.forEach(p => mergedPdf.addPage(p));
+                }
+
+                const finalBytes = await mergedPdf.save();
+                const blob = new Blob([finalBytes], { type: "application/pdf" });
+
+                const name = fileNameInput.value.trim() || "merged";
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `${name}.pdf`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            });
+        });
+    </script>
+</head>
+
+<body>
+    <div id="root">
+        <div id="drop-zone">
+            Քաշեք կամ ընտրեք մի քանի PDF ֆայլ
+        </div>
+
+        <input type="file" id="file-input" accept="application/pdf" multiple style="display:none">
+
+        <input type="text" id="output-name" placeholder="Եզրափակիչ ֆայլի անունը">
+
+        <button id="merge-btn" disabled>Միացնել և ներբեռնել PDF</button>
+
+        <a href="index.html">← Վերադառնալ PDF բաժանման էջ</a>
+    </div>
+</body>
+</html>
