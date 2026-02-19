@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF Splitter</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>PDF ԽՄԲԱԳՐԻՉ</title>
 
-    <style>
+<style>
+/* ===== RESET ===== */
         * {
             margin: 0;
             padding: 0;
@@ -14,221 +15,160 @@
             font-family: 'GHEA grapalat', serif;
         }
 
-        #root {
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            background-image: linear-gradient(180deg, rgba(8,12,20,0.9), rgba(2,6,12,0.95)), url('./logo_bg.png');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: cover;
-            background-color: #0b1220;
-            padding: 20px;
-        }
+/* ===== ROOT ===== */
+#root {
+	min-height: 100vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	background-image: linear-gradient(180deg, rgba(8,12,20,0.9), rgba(2,6,12,0.95)), url('data/logo_bg.png');
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+	background-color: #0b1220;
+	padding: 20px;
+}
 
-        #drop-zone {
-            max-width: 350px;
-            width: 100%;
-            height: 150px;
-            border: 2px dashed #60A5FA;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(255,255,255,0.02) !important;
-            color: #BEEAFE;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            padding: 25px 45px;
-            transition: background 0.25s, border-color 0.25s, transform 0.2s;
-            cursor: pointer;
-            user-select: none;
-            text-align: center;
-        }
+/* ===== TITLE ===== */
+h1 {
+    font-size: clamp(32px, 5vw, 48px);
+    letter-spacing: .12em;
+    margin-bottom: 48px;
+    background: linear-gradient(
+        120deg,
+        #5eead4,
+        #60a5fa,
+        #a78bfa
+    );
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 6s ease infinite;
+}
 
-        #drop-zone:hover {
-            background-color: rgba(255,255,255,0.04);
-            border-color: #93C5FD;
-        }
+@keyframes shimmer {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
-        #drop-zone.dragover {
-            background-color: rgba(255,255,255,0.06) !important;
-            border-color: #93C5FD;
-            color: #E0F2FE;
-            transform: scale(1.01);
-        }
+/* ===== GRID ===== */
+.menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 28px;
+    max-width: 820px;
+    margin: 0 auto;
+}
 
-        #drop-zone:active {
-            transform: scale(0.99);
-        }
+/* ===== CARD BUTTON ===== */
+.card {
+    position: relative;
+    padding: 36px 28px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: #e5e7eb;
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,0.06),
+            rgba(255,255,255,0.02)
+        );
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(6px);
+    box-shadow:
+        0 20px 40px rgba(0,0,0,.35);
+    transition:
+        transform .35s ease,
+        box-shadow .35s ease,
+        border-color .35s ease;
+}
 
-        input,
-        button {
-            max-width: 350px;
-            min-height: 52px;
-            width: 100%;
-            font-size: 24px;
-            margin-top: 10px;
-            font-family: 'GHEA grapalat', serif;
-        }
+/* glow layer */
+.card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(94,234,212,.6),
+        transparent
+    );
+    opacity: 0;
+    transition: opacity .35s ease;
+    pointer-events: none;
+}
 
-        #pages-per-file {
-            font-size: 40px;
-            padding-left: 40px;
-        }
+/* ===== HOVER ===== */
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+        0 30px 60px rgba(0,0,0,.55);
+    border-color: rgba(94,234,212,.45);
+}
 
-        #name-per-file {
-            padding-left: 40px;
-        }
+.card:hover::before {
+    opacity: 1;
+}
 
-        #split-btn {
-            border-radius: 5px;
-            border: none;
-            padding: 5px 15px;
-        }
+/* ===== CARD CONTENT ===== */
+.card-title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
 
-        #split-btn:enabled {
-            background-color: #4A90E2;
-            color: white;
-            cursor: pointer;
-        }
+.card-desc {
+    font-size: 15px;
+    opacity: .8;
+    line-height: 1.5;
+}
 
-        .link {
-            margin-top: 18px;
-            font-size: 18px;
-            color: #93C5FD;
-            text-decoration: none;
-        }
-
-        .link:hover {
-            text-decoration: underline;
-        }
-    </style>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-    <script type="module">
-        import { PDFDocument } from "https://cdn.jsdelivr.net/npm/pdf-lib@1.16.0/+esm";
-
-        async function saveFile(blob, suggestedName = "split_pdfs.zip") {
-            if (window.showSaveFilePicker) {
-                const handle = await window.showSaveFilePicker({
-                    suggestedName,
-                    types: [{ description: "ZIP Archive", accept: { "application/zip": [".zip"] } }],
-                });
-                const writable = await handle.createWritable();
-                await writable.write(blob);
-                await writable.close();
-                return;
-            }
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = suggestedName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-        }
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const dropZone = document.getElementById("drop-zone");
-            const fileInput = document.getElementById("file-input");
-            const splitBtn = document.getElementById("split-btn");
-            const pagesInput = document.getElementById("pages-per-file");
-            const filesName = document.getElementById("name-per-file");
-            let file = null;
-
-            dropZone.addEventListener("dragover", (e) => {
-                e.preventDefault();
-                dropZone.classList.add("dragover");
-            });
-
-            dropZone.addEventListener("dragleave", () => {
-                dropZone.classList.remove("dragover");
-            });
-
-            dropZone.addEventListener("drop", (e) => {
-                e.preventDefault();
-                dropZone.classList.remove("dragover");
-                file = e.dataTransfer.files[0];
-                if (file && file.type === "application/pdf") {
-                    splitBtn.disabled = false;
-                    dropZone.innerText = "Ֆայլը ընթեռնվել է, կարող եք սեղմել կոճակը";
-                    dropZone.style.color = 'gray';
-                    dropZone.style.borderColor = 'gray';
-                } else {
-                    alert("Please drop a valid PDF file");
-                    file = null;
-                }
-            });
-
-            dropZone.addEventListener('click', () => {
-                fileInput.value = null;
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                const chosen = e.target.files && e.target.files[0];
-                if (!chosen) return;
-                file = chosen;
-                if (file.type === 'application/pdf') {
-                    splitBtn.disabled = false;
-                    dropZone.innerText = "Ֆայլը ընտրված է, կարող եք սեղմել կոճակը";
-                    dropZone.style.color = 'gray';
-                    dropZone.style.borderColor = 'gray';
-                } else {
-                    alert('Please select a valid PDF file');
-                    file = null;
-                }
-            });
-
-            splitBtn.addEventListener("click", async () => {
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = async () => {
-                    const pdfBytes = new Uint8Array(reader.result);
-                    const pdfDoc = await PDFDocument.load(pdfBytes);
-                    const numPages = pdfDoc.getPageCount();
-                    const pagesPerFile = Math.max(1, parseInt(pagesInput.value, 10) || 2);
-                    const zip = new JSZip();
-
-                    for (let i = 0; i < numPages; i += pagesPerFile) {
-                        const newPdf = await PDFDocument.create();
-                        const end = Math.min(i + pagesPerFile, numPages);
-                        const indexes = Array.from({ length: end - i }, (_, j) => i + j);
-                        const pages = await newPdf.copyPages(pdfDoc, indexes);
-                        pages.forEach(page => newPdf.addPage(page));
-
-                        const outBytes = await newPdf.save();
-                        const baseName = filesName.value.trim() || "Հայցադիմումներ";
-                        const fileName = `${baseName}_${Math.floor(i / pagesPerFile) + 1}.pdf`;
-                        zip.file(fileName, outBytes);
-                    }
-
-                    const zipBlob = await zip.generateAsync({ type: "blob" });
-                    await saveFile(zipBlob, "split_pdfs.zip");
-                };
-                reader.readAsArrayBuffer(file);
-            });
-        });
-    </script>
+/* ===== FOOTER NOTE ===== */
+.note {
+    margin-top: 48px;
+    font-size: 14px;
+    opacity: .5;
+}
+</style>
 </head>
 
 <body>
-    <div id="root">
-        <div id="drop-zone">Սեղմեք ինձ կամ քաշեք և նետեք PDF ֆայլը այստեղ</div>
+<div id="root">
 
-        <input type="file" id="file-input" accept="application/pdf" style="display:none">
+    <h1>PDF ԽՄԲԱԳՐԻՉ</h1>
 
-        <input type="text" id="name-per-file" value="Հայցադիմումներ" placeholder="Փաստաթղթերի անվանումը">
-        <input type="number" id="pages-per-file" min="1" value="2" placeholder="Յուրաքանչյուր փաստաթղթի էջերի քանակը">
+    <div class="menu">
+        <a href="data/merge.html" class="card">
+            <div class="card-title">Միացնել PDF</div>
+            <div class="card-desc">
+                Միացրեք մի քանի PDF ֆայլ մեկ փաստաթղթի մեջ
+            </div>
+        </a>
 
-        <button id="split-btn" disabled>Տարանջատել PDF և ներբեռնել ZIP</button>
+        <a href="data/split.html" class="card">
+            <div class="card-title">Բաժանել PDF</div>
+            <div class="card-desc">
+                Տարանջատեք PDF-ը մասերի ըստ էջերի
+            </div>
+        </a>
 
-        <a class="link" href="merge.html">➜ Միացնել մի քանի PDF մեկ ֆայլի մեջ</a>
+        <a href="data/rotate.html" class="card">
+            <div class="card-title">Պտտել PDF</div>
+            <div class="card-desc">
+                Պտտեք էջերը 90° / 180° / 270°
+            </div>
+        </a>
     </div>
-</body>
 
+    <div class="note">
+        Offline PDF tools • 2025
+    </div>
+
+</div>
+</body>
 </html>
