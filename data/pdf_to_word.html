@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>PDF → DOCX</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script type="module">
+import { Document, Packer, Paragraph, TextRun, PageBreak } from "https://esm.sh/docx@9.5.1";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+
+const dropZone = document.getElementById("drop-zone");
+const fileInput = document.getElementById("file-input");
+const status = document.getElementById("status");
+const btnConvert = document.getElementById("convert");
+
+let file = null;
+
+/* ===== UI ===== */
+dropZone.onclick = () => fileInput.click();
+
+dropZone.ondragover = e => {
+  e.preventDefault();
+  dropZone.classList.add("drag");
+};
+
+dropZone.ondragleave = () => {
+  dropZone.classList.remove("drag");
+};
+
+dropZone.ondrop = e => {
+  e.preventDefault();
+  dropZone.classList.remove("drag");
+
+  file = e.dataTransfer.files[0];
+  updateUI();
+};
+
+fileInput.onchange = () => {
+  file = fileInput.files[0];
+  updateUI();
+};
+
+function updateUI(){
+  if (file){
+    dropZone.textContent = file.name;
+    btnConvert.disabled = false;
+  } else {
+    dropZone.textContent = "Перетащи PDF или нажми";
+    btnConvert.disabled = true;
+  }
+}
+
+/* ===== CONVERT ===== */
+btnConvert.onclick = async () => {
+  if (!file) return;
+
+  status.textContent = "Читаю PDF...";
+
+  const buffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+  const children = [];
+
+  for (let i = 1; i <= pdf.numPages; i++){
+    status.textContent = `Страница ${i}/${pdf.numPages}`;
+
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+
+    content.items.forEach(item => {
+      if (!item.str.trim()) return;
+
+      children.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: item.str,
+              size: 22
+            })
+          ]
+        })
+      );
+    });
+
+    if (i !== pdf.numPages){
+      children.push(new Paragraph({ children:[ new PageBreak() ] }));
+    }
+  }
+
+  status.textContent = "Создаю DOCX...";
+
+  const doc = new Document({
+    sections: [{ children }]
+  });
+
+  const blob = await Packer.toBlob(doc);
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = file.name.replace(".pdf",".docx");
+  a.click();
+
+  status.textContent = "Готово!";
+};
+
+});
+</script>
+
+<style>
+* {
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial;
+}
+
+#root {
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  background:linear-gradient(180deg,#0b1220,#05080f);
+}
+
+#drop-zone {
+  width:300px;
+  height:140px;
+  border:2px dashed #34D399;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  color:#D1FAE5;
+  cursor:pointer;
+  margin-bottom:20px;
+  transition:.2s;
+}
+
+#drop-zone.drag {
+  background:#1f2937;
+}
+
+button {
+  width:300px;
+  padding:14px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:16px;
+}
+
+#convert {
+  background:#6366F1;
+  color:white;
+}
+
+button:disabled {
+  opacity:.5;
+}
+
+#status {
+  margin-top:15px;
+  color:#9ca3af;
+}
+
+.back-btn {
+  position:fixed;
+  top:20px;
+  left:20px;
+  padding:10px 15px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.08);
+  color:white;
+  text-decoration:none;
+}
+</style>
+
+</head>
+
+<body>
+<div id="root">
+
+<div id="drop-zone">Սեղմեք կամ տեղադրեք PDF ֆայլը այստեղ</div>
+<input id="file-input" type="file" accept="application/pdf" hidden>
+
+<button id="convert" disabled>Կերպափոխել DOCX</button>
+
+<div id="status"></div>
+
+<a href="../index.html" class="back-btn">← Назад</a>
+
+</div>
+</body>
+</html>
