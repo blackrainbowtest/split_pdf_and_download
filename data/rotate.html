@@ -1,298 +1,329 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-<meta charset="UTF-8">
-<title>PDF Rotator</title>
+	<meta charset="UTF-8">
+	<title>PDF Rotator</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-<style>
-	body {
-	background:#0b1220;
-	color:white;
-	font-family:Arial;
-	display:flex;
-	justify-content:center;
-	align-items:center;
-	flex-direction:column;
-	height:100vh;
-	}
+	<style>
+		* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'GHEA grapalat', serif;
+        }
 
-	#drop-zone {
-	width:300px;
-	height:140px;
-	padding: 15px;
-	border:2px dashed #34D399;
-	display:flex;
-	align-items:center;
-	justify-content:center;
-	text-align: center;
-	border-radius:10px;
-	cursor:pointer;
-	margin-bottom:20px;
-	transition:.2s;
-	}
+        #drop-zone {
+            max-width: 350px;
+            width: 100%;
+            height: 150px;
+            border: 2px dashed #34D399;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #D1FAE5;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 20px;
+            cursor: pointer;
+        }
 
-	#drop-zone.drag {
-	background:#1f2937;
-	border-color:#10B981;
-	}
+		#drop-zone:hover {
+            background-color: rgba(255,255,255,0.04);
+            border-color: #93C5FD;
+        }
 
-	canvas {
-	background:white;
-	border-radius:10px;
-	margin-bottom:10px;
-	}
+		#drop-zone.drag {
+			background: #1f2937;
+			border-color: #10B981;
+		}
 
-	button {
-	width:300px;
-	padding:12px;
-	margin-top:8px;
-	border:none;
-	border-radius:8px;
-	cursor:pointer;
-	}
+		canvas {
+			background: white;
+			border-radius: 10px;
+			margin-bottom: 10px;
+		}
 
-	#left  { background:#3B82F6; }
-	#right { background:#10B981; }
-	#save  { background:#6366F1; }
-	#save-pdf { background:#F59E0B; }
+		button {
+			width: 300px;
+			padding: 12px;
+			margin-top: 8px;
+			border: none;
+			border-radius: 8px;
+			cursor: pointer;
+		}
 
-	button:disabled {
-	opacity:.5;
-	}
-	.back-btn {
-		position: fixed;
-		top: 24px;
-		left: 24px;
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		padding: 10px 16px;
-		border-radius: 999px;
-		text-decoration: none;
-		color: #e5e7eb;
-		font-size: 16px;
-		background: rgba(255,255,255,0.06);
-		border: 1px solid rgba(255,255,255,0.12);
-		backdrop-filter: blur(8px);
-		box-shadow: 0 10px 30px rgba(0,0,0,.35);
-		transition:
-			background .25s ease,
-			transform .25s ease,
-			box-shadow .25s ease,
-			border-color .25s ease;
-		z-index: 1000;
-	}
+		#left {
+			background: #3B82F6;
+		}
 
-	.back-btn .arrow {
-		font-size: 18px;
-		transition: transform .25s ease;
-	}
+		#right {
+			background: #10B981;
+		}
 
-	.back-btn:hover {
-		background: rgba(255,255,255,0.12);
-		border-color: rgba(94,234,212,.6);
-		transform: translateY(-2px);
-		box-shadow: 0 18px 40px rgba(0,0,0,.55);
-	}
+		#save {
+			background: #6366F1;
+		}
 
-	.back-btn:hover .arrow {
-		transform: translateX(-4px);
-	}
+		#save-pdf {
+			background: #F59E0B;
+		}
 
-</style>
+		button:disabled {
+			opacity: .5;
+		}
+
+		.back-btn {
+			position: fixed;
+			top: 24px;
+			left: 24px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 16px;
+			border-radius: 999px;
+			text-decoration: none;
+			color: #e5e7eb;
+			font-size: 16px;
+			background: rgba(255, 255, 255, 0.06);
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			backdrop-filter: blur(8px);
+			box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+			transition:
+				background .25s ease,
+				transform .25s ease,
+				box-shadow .25s ease,
+				border-color .25s ease;
+			z-index: 1000;
+		}
+
+		.back-btn .arrow {
+			font-size: 18px;
+			transition: transform .25s ease;
+		}
+
+		.back-btn:hover {
+			background: rgba(255, 255, 255, 0.12);
+			border-color: rgba(94, 234, 212, .6);
+			transform: translateY(-2px);
+			box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
+		}
+
+		.back-btn:hover .arrow {
+			transform: translateX(-4px);
+		}
+
+		#root {
+			min-height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			flex-direction: column;
+			background-image: linear-gradient(180deg, rgba(8, 12, 20, 0.9), rgba(2, 6, 12, 0.95)), url('./logo_bg.png');
+			background-repeat: no-repeat;
+			background-position: center;
+			background-size: cover;
+			background-color: #0b1220;
+			padding: 20px;
+		}
+	</style>
 </head>
 
 <body>
+	<div id="root">
 
-	<div id="drop-zone">Սեղմեք կամ տեղադրեք PDF ֆայլը այստեղ</div>
-	<input id="file-input" type="file" accept="application/pdf" multiple hidden>
+		<div id="drop-zone">Սեղմեք կամ տեղադրեք PDF ֆայլը այստեղ</div>
+		<input id="file-input" type="file" accept="application/pdf" multiple hidden>
 
-	<canvas id="previewCanvas"></canvas>
+		<canvas id="previewCanvas"></canvas>
 
-	<div>Угол: <span id="angle">0°</span></div>
+		<div>Угол: <span id="angle">0°</span></div>
 
-	<div class="btn-row">
-	<button id="left" disabled>⟲ Պտտել ձախ</button>
-	<button id="right" disabled>⟳ Պտտել աջ</button>
+		<div class="btn-row">
+			<button id="left" disabled>⟲ Պտտել ձախ</button>
+			<button id="right" disabled>⟳ Պտտել աջ</button>
+		</div>
+
+		<!-- РЯД 2: скачивание -->
+		<div class="btn-row">
+			<button id="save-pdf" disabled>Ներբեռնել PDF</button>
+			<button id="save" disabled>Ներբեռնել ZIP</button>
+		</div>
+
+		<a href="../index.html" class="back-btn" aria-label="Back to home">
+			<span class="arrow">←</span>
+			<span class="label">Գլխավոր էջ</span>
+		</a>
 	</div>
 
-	<!-- РЯД 2: скачивание -->
-	<div class="btn-row">
-	<button id="save-pdf" disabled>Ներբեռնել PDF</button>
-	<button id="save" disabled>Ներբեռնել ZIP</button>
-	</div>
+	<script>
+		document.addEventListener("DOMContentLoaded", () => {
 
-	<a href="../index.html" class="back-btn" aria-label="Back to home">
-		<span class="arrow">←</span>
-		<span class="label">Գլխավոր էջ</span>
-	</a>
+			const { PDFDocument, degrees } = PDFLib;
 
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+			pdfjsLib.GlobalWorkerOptions.workerSrc =
+				"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-const { PDFDocument, degrees } = PDFLib;
+			const dropZone = document.getElementById("drop-zone");
+			const fileInput = document.getElementById("file-input");
+			const canvas = document.getElementById("previewCanvas");
+			const ctx = canvas.getContext("2d");
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+			const btnLeft = document.getElementById("left");
+			const btnRight = document.getElementById("right");
+			const btnSave = document.getElementById("save");
+			const btnSavePdf = document.getElementById("save-pdf");
+			const angleText = document.getElementById("angle");
 
-const dropZone = document.getElementById("drop-zone");
-const fileInput = document.getElementById("file-input");
-const canvas = document.getElementById("previewCanvas");
-const ctx = canvas.getContext("2d");
+			let files = [];
+			let visualAngle = 0;
+			let pdfAngle = 0;
 
-const btnLeft = document.getElementById("left");
-const btnRight = document.getElementById("right");
-const btnSave = document.getElementById("save");
-const btnSavePdf = document.getElementById("save-pdf");
-const angleText = document.getElementById("angle");
+			/* ===== DRAG & DROP ===== */
+			dropZone.onclick = () => fileInput.click();
 
-let files = [];
-let visualAngle = 0;
-let pdfAngle = 0;
+			dropZone.ondragover = e => {
+				e.preventDefault();
+				dropZone.classList.add("drag");
+			};
 
-/* ===== DRAG & DROP ===== */
-dropZone.onclick = () => fileInput.click();
+			dropZone.ondragleave = () => {
+				dropZone.classList.remove("drag");
+			};
 
-dropZone.ondragover = e => {
-  e.preventDefault();
-  dropZone.classList.add("drag");
-};
+			dropZone.ondrop = async e => {
+				e.preventDefault();
+				dropZone.classList.remove("drag");
 
-dropZone.ondragleave = () => {
-  dropZone.classList.remove("drag");
-};
+				files = Array.from(e.dataTransfer.files)
+					.filter(f => f.type === "application/pdf");
 
-dropZone.ondrop = async e => {
-  e.preventDefault();
-  dropZone.classList.remove("drag");
+				handleFiles();
+			};
 
-  files = Array.from(e.dataTransfer.files)
-    .filter(f => f.type === "application/pdf");
+			fileInput.onchange = () => {
+				files = Array.from(fileInput.files)
+					.filter(f => f.type === "application/pdf");
 
-  handleFiles();
-};
+				handleFiles();
+			};
 
-fileInput.onchange = () => {
-  files = Array.from(fileInput.files)
-    .filter(f => f.type === "application/pdf");
+			async function handleFiles() {
+				visualAngle = 0;
+				pdfAngle = 0;
 
-  handleFiles();
-};
+				canvas.style.transform = "rotate(0deg)";
+				angleText.textContent = "0°";
 
-async function handleFiles(){
-  visualAngle = 0;
-  pdfAngle = 0;
+				updateUI();
 
-  canvas.style.transform = "rotate(0deg)";
-  angleText.textContent = "0°";
+				if (files.length) {
+					await renderPreview(files[0]);
+				}
+			}
 
-  updateUI();
+			/* ===== PREVIEW ===== */
+			async function renderPreview(file) {
+				const buffer = await file.arrayBuffer();
+				const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+				const page = await pdf.getPage(1);
 
-  if (files.length){
-    await renderPreview(files[0]);
-  }
-}
+				const viewport = page.getViewport({ scale: 0.6 });
 
-/* ===== PREVIEW ===== */
-async function renderPreview(file){
-  const buffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-  const page = await pdf.getPage(1);
+				canvas.width = viewport.width;
+				canvas.height = viewport.height;
 
-  const viewport = page.getViewport({ scale: 0.6 });
+				await page.render({
+					canvasContext: ctx,
+					viewport
+				}).promise;
+			}
 
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
+			/* ===== UI ===== */
+			function updateUI() {
+				if (files.length) {
+					dropZone.textContent = `Выбрано ${files.length} PDF`;
+					btnLeft.disabled = false;
+					btnRight.disabled = false;
+					btnSave.disabled = false;
+					btnSavePdf.disabled = files.length !== 1;
+				} else {
+					dropZone.textContent = "Перетащи PDF или нажми";
+					btnLeft.disabled = true;
+					btnRight.disabled = true;
+					btnSave.disabled = true;
+					btnSavePdf.disabled = true;
+				}
+			}
 
-  await page.render({
-    canvasContext: ctx,
-    viewport
-  }).promise;
-}
+			/* ===== ROTATE ===== */
+			btnLeft.onclick = () => rotate(-90);
+			btnRight.onclick = () => rotate(90);
 
-/* ===== UI ===== */
-function updateUI(){
-  if (files.length){
-    dropZone.textContent = `Выбрано ${files.length} PDF`;
-    btnLeft.disabled = false;
-    btnRight.disabled = false;
-    btnSave.disabled = false;
-    btnSavePdf.disabled = files.length !== 1;
-  } else {
-    dropZone.textContent = "Перетащи PDF или нажми";
-    btnLeft.disabled = true;
-    btnRight.disabled = true;
-    btnSave.disabled = true;
-    btnSavePdf.disabled = true;
-  }
-}
+			function rotate(delta) {
+				visualAngle += delta;
+				pdfAngle = (pdfAngle + delta + 360) % 360;
 
-/* ===== ROTATE ===== */
-btnLeft.onclick = () => rotate(-90);
-btnRight.onclick = () => rotate(90);
+				canvas.style.transform = `rotate(${visualAngle}deg)`;
+				angleText.textContent = pdfAngle + "°";
+			}
 
-function rotate(delta){
-  visualAngle += delta;
-  pdfAngle = (pdfAngle + delta + 360) % 360;
+			/* ===== SAVE ONE ===== */
+			btnSavePdf.onclick = async () => {
+				if (files.length !== 1) return;
 
-  canvas.style.transform = `rotate(${visualAngle}deg)`;
-  angleText.textContent = pdfAngle + "°";
-}
+				const file = files[0];
+				const bytes = await file.arrayBuffer();
+				const pdf = await PDFDocument.load(bytes);
 
-/* ===== SAVE ONE ===== */
-btnSavePdf.onclick = async () => {
-  if (files.length !== 1) return;
+				pdf.getPages().forEach(page => {
+					const base = page.getRotation().angle;
+					page.setRotation(degrees(base + pdfAngle));
+				});
 
-  const file = files[0];
-  const bytes = await file.arrayBuffer();
-  const pdf = await PDFDocument.load(bytes);
+				const out = await pdf.save();
+				download(new Blob([out]), file.name.replace(".pdf", "_rotated.pdf"));
+			};
 
-  pdf.getPages().forEach(page => {
-    const base = page.getRotation().angle;
-    page.setRotation(degrees(base + pdfAngle));
-  });
+			/* ===== SAVE ZIP ===== */
+			btnSave.onclick = async () => {
+				if (!files.length) return;
 
-  const out = await pdf.save();
-  download(new Blob([out]), file.name.replace(".pdf","_rotated.pdf"));
-};
+				const zip = new JSZip();
 
-/* ===== SAVE ZIP ===== */
-btnSave.onclick = async () => {
-  if (!files.length) return;
+				for (const file of files) {
+					const bytes = await file.arrayBuffer();
+					const pdf = await PDFDocument.load(bytes);
 
-  const zip = new JSZip();
+					pdf.getPages().forEach(page => {
+						const base = page.getRotation().angle;
+						page.setRotation(degrees(base + pdfAngle));
+					});
 
-  for (const file of files){
-    const bytes = await file.arrayBuffer();
-    const pdf = await PDFDocument.load(bytes);
+					const out = await pdf.save();
+					zip.file(file.name, out);
+				}
 
-    pdf.getPages().forEach(page => {
-      const base = page.getRotation().angle;
-      page.setRotation(degrees(base + pdfAngle));
-    });
+				const blob = await zip.generateAsync({ type: "blob" });
+				download(blob, "rotated.zip");
+			};
 
-    const out = await pdf.save();
-    zip.file(file.name, out);
-  }
+			/* ===== DOWNLOAD ===== */
+			function download(blob, name) {
+				const a = document.createElement("a");
+				a.href = URL.createObjectURL(blob);
+				a.download = name;
+				a.click();
+			}
 
-  const blob = await zip.generateAsync({ type:"blob" });
-  download(blob, "rotated.zip");
-};
-
-/* ===== DOWNLOAD ===== */
-function download(blob, name){
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = name;
-  a.click();
-}
-
-});
-</script>
+		});
+	</script>
 
 </body>
+
 </html>
