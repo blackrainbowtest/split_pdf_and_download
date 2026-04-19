@@ -1,270 +1,280 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-<meta charset="UTF-8">
-<title>PDF Խմբագրել</title>
+    <meta charset="UTF-8">
+    <title>PDF Խմբագրել</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-<style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body {
-    background: #0b1220;
-    color: white;
-    font-family: sans-serif;
-}
+        body {
+            background: #0b1220;
+            color: white;
+            font-family: sans-serif;
+        }
 
-/* ===== BACK ===== */
-.back-btn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    padding: 10px 16px;
-    border-radius: 999px;
-    text-decoration: none;
-    color: white;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(8px);
-}
+        /* ===== BACK ===== */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 16px;
+            border-radius: 999px;
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+        }
 
-/* ===== DROP ===== */
-#drop {
-    margin: 80px auto 20px;
-    width: 320px;
-    height: 120px;
-    border: 2px dashed #34D399;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    cursor: pointer;
-}
+        /* ===== DROP ===== */
+        #drop {
+            margin: 80px auto 20px;
+            width: 320px;
+            height: 120px;
+            border: 2px dashed #34D399;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            cursor: pointer;
+        }
 
-/* ===== GRID ===== */
-#grid {
-    display: grid;
-    gap: 20px;
-    padding: 20px;
-}
+        /* ===== GRID ===== */
+        #grid {
+            display: grid;
+            gap: 20px;
+            padding: 20px;
+        }
 
-@media (min-width: 400px) {
-    #grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 800px) {
-    #grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (min-width: 1200px) {
-    #grid { grid-template-columns: repeat(4, 1fr); }
-}
+        @media (min-width: 400px) {
+            #grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
 
-/* ===== CARD ===== */
-.page {
-    position: relative;
-    border-radius: 14px;
-    background: #111827;
-    height: 220px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.2s;
-}
+        @media (min-width: 800px) {
+            #grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
 
-.page.selected {
-    background: rgba(255,221,87,0.08);
-    box-shadow: 0 0 0 1px rgba(255,221,87,0.3);
-}
+        @media (min-width: 1200px) {
+            #grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
 
-/* ===== CANVAS CENTER ===== */
-.canvas-wrap {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+        /* ===== CARD ===== */
+        .page {
+            position: relative;
+            border-radius: 14px;
+            background: #111827;
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-canvas {
-    max-width: 100%;
-    max-height: 100%;
-    border-radius: 6px;
-}
+        .page.selected {
+            background: rgba(255, 221, 87, 0.08);
+            box-shadow: 0 0 0 1px rgba(255, 221, 87, 0.3);
+        }
 
-/* ===== CHECKBOX ===== */
-.page input {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-}
+        /* ===== CANVAS CENTER ===== */
+        .canvas-wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-/* ===== BUTTON ===== */
-#save {
-    display: block;
-    margin: 20px auto;
-    padding: 14px 30px;
-    border: none;
-    border-radius: 10px;
-    background: #F59E0B;
-    color: white;
-    cursor: pointer;
-}
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 6px;
+        }
 
-#save:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-</style>
+        /* ===== CHECKBOX ===== */
+        .page input {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* ===== BUTTON ===== */
+        #save {
+            display: block;
+            margin: 20px auto;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 10px;
+            background: #F59E0B;
+            color: white;
+            cursor: pointer;
+        }
+
+        #save:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 
 <body>
 
-<a href="../index.html" class="back-btn">← Գլխավոր</a>
+    <a href="../index.html" class="back-btn">← Գլխավոր</a>
 
-<div id="drop">Բեռնել PDF</div>
-<input type="file" id="file" accept="application/pdf" hidden>
+    <div id="drop">Բեռնել PDF</div>
+    <input type="file" id="file" accept="application/pdf" hidden>
 
-<div id="grid"></div>
+    <div id="grid"></div>
 
-<button id="save" disabled>Ներբեռնել PDF</button>
+    <button id="save" disabled>Ներբեռնել PDF</button>
 
-<script>
-const drop = document.getElementById("drop");
-const fileInput = document.getElementById("file");
-const grid = document.getElementById("grid");
-const saveBtn = document.getElementById("save");
+    <script>
+        const drop = document.getElementById("drop");
+        const fileInput = document.getElementById("file");
+        const grid = document.getElementById("grid");
+        const saveBtn = document.getElementById("save");
 
-let pdfDoc = null;
-let originalFile = null;
-let selectedPages = [];
+        let pdfDoc = null;
+        let originalFile = null;
+        let selectedPages = [];
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-/* ===== DRAG ===== */
-drop.onclick = () => fileInput.click();
+        /* ===== DRAG ===== */
+        drop.onclick = () => fileInput.click();
 
-drop.ondragover = e => {
-    e.preventDefault();
-    drop.style.borderColor = "#60A5FA";
-};
+        drop.ondragover = e => {
+            e.preventDefault();
+            drop.style.borderColor = "#60A5FA";
+        };
 
-drop.ondragleave = () => {
-    drop.style.borderColor = "#34D399";
-};
+        drop.ondragleave = () => {
+            drop.style.borderColor = "#34D399";
+        };
 
-drop.ondrop = e => {
-    e.preventDefault();
-    drop.style.borderColor = "#34D399";
+        drop.ondrop = e => {
+            e.preventDefault();
+            drop.style.borderColor = "#34D399";
 
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === "application/pdf") {
-        loadFile(file);
-    }
-};
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === "application/pdf") {
+                loadFile(file);
+            }
+        };
 
-fileInput.onchange = e => {
-    loadFile(e.target.files[0]);
-};
+        fileInput.onchange = e => {
+            loadFile(e.target.files[0]);
+        };
 
-/* ===== LOAD ===== */
-async function loadFile(file) {
-    originalFile = file;
+        /* ===== LOAD ===== */
+        async function loadFile(file) {
+            originalFile = file;
 
-    const buffer = await file.arrayBuffer();
-    pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
+            const buffer = await file.arrayBuffer();
+            pdfDoc = await pdfjsLib.getDocument({ data: buffer }).promise;
 
-    grid.innerHTML = "";
-    selectedPages = [];
+            grid.innerHTML = "";
+            selectedPages = [];
 
-    for (let i = 1; i <= pdfDoc.numPages; i++) {
-        const page = await pdfDoc.getPage(i);
-        const viewport = page.getViewport({ scale: 0.5 });
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: 0.5 });
 
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
 
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
 
-        await page.render({ canvasContext: ctx, viewport }).promise;
+                await page.render({ canvasContext: ctx, viewport }).promise;
 
-        const wrapper = document.createElement("div");
-        wrapper.className = "page selected";
+                const wrapper = document.createElement("div");
+                wrapper.className = "page selected";
 
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = true;
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = true;
 
-        selectedPages.push(true);
+                selectedPages.push(true);
 
-        const wrap = document.createElement("div");
-        wrap.className = "canvas-wrap";
-        wrap.appendChild(canvas);
+                const wrap = document.createElement("div");
+                wrap.className = "canvas-wrap";
+                wrap.appendChild(canvas);
 
-        function toggle(state) {
-            checkbox.checked = state;
-            wrapper.classList.toggle("selected", state);
-            selectedPages[i - 1] = state;
+                function toggle(state) {
+                    checkbox.checked = state;
+                    wrapper.classList.toggle("selected", state);
+                    selectedPages[i - 1] = state;
+                    updateSaveState();
+                }
+
+                wrapper.onclick = (e) => {
+                    if (e.target.tagName === "INPUT") return;
+                    toggle(!checkbox.checked);
+                };
+
+                checkbox.onchange = () => {
+                    toggle(checkbox.checked);
+                };
+
+                wrapper.appendChild(wrap);
+                wrapper.appendChild(checkbox);
+                grid.appendChild(wrapper);
+            }
+
             updateSaveState();
         }
 
-        wrapper.onclick = (e) => {
-            if (e.target.tagName === "INPUT") return;
-            toggle(!checkbox.checked);
+        /* ===== STATE ===== */
+        function updateSaveState() {
+            const hasFile = !!originalFile;
+            const hasPages = selectedPages.some(p => p);
+            saveBtn.disabled = !(hasFile && hasPages);
+        }
+
+        /* ===== BUILD PDF ===== */
+        saveBtn.onclick = async () => {
+            const { PDFDocument } = PDFLib;
+
+            const bytes = await originalFile.arrayBuffer();
+            const srcPdf = await PDFDocument.load(bytes);
+            const newPdf = await PDFDocument.create();
+
+            for (let i = 0; i < selectedPages.length; i++) {
+                if (!selectedPages[i]) continue;
+
+                const [page] = await newPdf.copyPages(srcPdf, [i]);
+                newPdf.addPage(page);
+            }
+
+            const out = await newPdf.save();
+            download(new Blob([out]), originalFile.name);
         };
 
-        checkbox.onchange = () => {
-            toggle(checkbox.checked);
-        };
-
-        wrapper.appendChild(wrap);
-        wrapper.appendChild(checkbox);
-        grid.appendChild(wrapper);
-    }
-
-    updateSaveState();
-}
-
-/* ===== STATE ===== */
-function updateSaveState() {
-    const hasFile = !!originalFile;
-    const hasPages = selectedPages.some(p => p);
-    saveBtn.disabled = !(hasFile && hasPages);
-}
-
-/* ===== BUILD PDF ===== */
-saveBtn.onclick = async () => {
-    const { PDFDocument } = PDFLib;
-
-    const bytes = await originalFile.arrayBuffer();
-    const srcPdf = await PDFDocument.load(bytes);
-    const newPdf = await PDFDocument.create();
-
-    for (let i = 0; i < selectedPages.length; i++) {
-        if (!selectedPages[i]) continue;
-
-        const [page] = await newPdf.copyPages(srcPdf, [i]);
-        newPdf.addPage(page);
-    }
-
-    const out = await newPdf.save();
-    download(new Blob([out]), originalFile.name);
-};
-
-/* ===== DOWNLOAD ===== */
-function download(blob, name) {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-}
-</script>
+        /* ===== DOWNLOAD ===== */
+        function download(blob, name) {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = name;
+            a.click();
+        }
+    </script>
 
 </body>
+
 </html>
