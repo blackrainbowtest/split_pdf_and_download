@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hy">
 
 <head>
     <meta charset="UTF-8">
@@ -60,6 +60,14 @@
             transform: scale(0.99);
         }
 
+        #drop-zone:focus-visible,
+        input:focus-visible,
+        button:focus-visible,
+        .back-btn:focus-visible {
+            outline: 3px solid #93C5FD;
+            outline-offset: 3px;
+        }
+
         input,
         button {
             max-width: 350px;
@@ -68,6 +76,14 @@
             font-size: 24px;
             margin-top: 10px;
             font-family: 'GHEA grapalat', serif;
+        }
+
+        label {
+            max-width: 350px;
+            width: 100%;
+            margin-top: 12px;
+            color: #D1FAE5;
+            font-size: 16px;
         }
 
         #pages-per-file {
@@ -89,6 +105,31 @@
             background-color: #4A90E2;
             color: white;
             cursor: pointer;
+        }
+
+        #split-btn:disabled {
+            background-color: #6b7280;
+            color: #d1d5db;
+            cursor: not-allowed;
+        }
+
+        #status {
+            max-width: 350px;
+            min-height: 24px;
+            width: 100%;
+            margin-top: 14px;
+            color: #D1FAE5;
+            font-size: 16px;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        #status.error {
+            color: #FCA5A5;
+        }
+
+        #status.success {
+            color: #86EFAC;
         }
 
         .link {
@@ -174,7 +215,44 @@
             const splitBtn = document.getElementById("split-btn");
             const pagesInput = document.getElementById("pages-per-file");
             const filesName = document.getElementById("name-per-file");
+            const status = document.getElementById("status");
+            const initialDropText = dropZone.innerText;
+            const initialButtonText = splitBtn.innerText;
             let file = null;
+
+            function isPdf(selectedFile) {
+                return selectedFile
+                    && (selectedFile.type === "application/pdf" || selectedFile.name.toLowerCase().endsWith(".pdf"));
+            }
+
+            function setStatus(message, type = "") {
+                status.innerText = message;
+                status.className = type;
+            }
+
+            function setFile(selectedFile, selectedText) {
+                if (!isPdf(selectedFile)) {
+                    file = null;
+                    splitBtn.disabled = true;
+                    dropZone.innerText = initialDropText;
+                    dropZone.style.color = "";
+                    dropZone.style.borderColor = "";
+                    setStatus("Խնդրում ենք ընտրել PDF ֆայլ։", "error");
+                    return;
+                }
+
+                file = selectedFile;
+                splitBtn.disabled = false;
+                dropZone.innerText = selectedText;
+                dropZone.style.color = "#D1D5DB";
+                dropZone.style.borderColor = "#9CA3AF";
+                setStatus(`Ընտրված է՝ ${file.name}`, "success");
+            }
+
+            function openFilePicker() {
+                fileInput.value = "";
+                fileInput.click();
+            }
 
             dropZone.addEventListener("dragover", (e) => {
                 e.preventDefault();
@@ -188,64 +266,69 @@
             dropZone.addEventListener("drop", (e) => {
                 e.preventDefault();
                 dropZone.classList.remove("dragover");
-                file = e.dataTransfer.files[0];
-                if (file && file.type === "application/pdf") {
-                    splitBtn.disabled = false;
-                    dropZone.innerText = "Ֆայլը ընթեռնվել է, կարող եք սեղմել կոճակը";
-                    dropZone.style.color = 'gray';
-                    dropZone.style.borderColor = 'gray';
-                } else {
-                    alert("Please drop a valid PDF file");
-                    file = null;
+                setFile(e.dataTransfer.files[0], "Ֆայլը բեռնված է, կարող եք սեղմել կոճակը");
+            });
+
+            dropZone.addEventListener("click", openFilePicker);
+
+            dropZone.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openFilePicker();
                 }
             });
 
-            dropZone.addEventListener('click', () => {
-                fileInput.value = null;
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', (e) => {
+            fileInput.addEventListener("change", (e) => {
                 const chosen = e.target.files && e.target.files[0];
                 if (!chosen) return;
-                file = chosen;
-                if (file.type === 'application/pdf') {
-                    splitBtn.disabled = false;
-                    dropZone.innerText = "Ֆայլը ընտրված է, կարող եք սեղմել կոճակը";
-                    dropZone.style.color = 'gray';
-                    dropZone.style.borderColor = 'gray';
-                } else {
-                    alert('Please select a valid PDF file');
-                    file = null;
-                }
+                setFile(chosen, "Ֆայլը ընտրված է, կարող եք սեղմել կոճակը");
             });
 
             splitBtn.addEventListener("click", async () => {
                 if (!file) return;
 
+                splitBtn.disabled = true;
+                splitBtn.innerText = "Մշակվում է...";
+                setStatus("PDF-ը տարանջատվում է։ Խնդրում ենք սպասել...");
+
                 const reader = new FileReader();
                 reader.onload = async () => {
-                    const pdfBytes = new Uint8Array(reader.result);
-                    const pdfDoc = await PDFDocument.load(pdfBytes);
-                    const numPages = pdfDoc.getPageCount();
-                    const pagesPerFile = Math.max(1, parseInt(pagesInput.value, 10) || 2);
-                    const zip = new JSZip();
+                    try {
+                        const pdfBytes = new Uint8Array(reader.result);
+                        const pdfDoc = await PDFDocument.load(pdfBytes);
+                        const numPages = pdfDoc.getPageCount();
+                        const pagesPerFile = Math.max(1, parseInt(pagesInput.value, 10) || 1);
+                        const zip = new JSZip();
+                        const baseName = (filesName.value.trim() || "Հայցադիմումներ")
+                            .replace(/[\\/:*?"<>|]/g, "-");
 
-                    for (let i = 0; i < numPages; i += pagesPerFile) {
-                        const newPdf = await PDFDocument.create();
-                        const end = Math.min(i + pagesPerFile, numPages);
-                        const indexes = Array.from({ length: end - i }, (_, j) => i + j);
-                        const pages = await newPdf.copyPages(pdfDoc, indexes);
-                        pages.forEach(page => newPdf.addPage(page));
+                        for (let i = 0; i < numPages; i += pagesPerFile) {
+                            const newPdf = await PDFDocument.create();
+                            const end = Math.min(i + pagesPerFile, numPages);
+                            const indexes = Array.from({ length: end - i }, (_, j) => i + j);
+                            const pages = await newPdf.copyPages(pdfDoc, indexes);
+                            pages.forEach(page => newPdf.addPage(page));
 
-                        const outBytes = await newPdf.save();
-                        const baseName = filesName.value.trim() || "Հայցադիմումներ";
-                        const fileName = `${baseName}_${Math.floor(i / pagesPerFile) + 1}.pdf`;
-                        zip.file(fileName, outBytes);
+                            const outBytes = await newPdf.save();
+                            const fileName = `${baseName}_${Math.floor(i / pagesPerFile) + 1}.pdf`;
+                            zip.file(fileName, outBytes);
+                        }
+
+                        const zipBlob = await zip.generateAsync({ type: "blob" });
+                        await saveFile(zipBlob, "split_pdfs.zip");
+                        setStatus("ZIP ֆայլը պատրաստ է։", "success");
+                    } catch (error) {
+                        console.error(error);
+                        setStatus("Չհաջողվեց տարանջատել PDF-ը։ Ստուգեք ֆայլը և փորձեք կրկին։", "error");
+                    } finally {
+                        splitBtn.disabled = false;
+                        splitBtn.innerText = initialButtonText;
                     }
-
-                    const zipBlob = await zip.generateAsync({ type: "blob" });
-                    await saveFile(zipBlob, "split_pdfs.zip");
+                };
+                reader.onerror = () => {
+                    splitBtn.disabled = false;
+                    splitBtn.innerText = initialButtonText;
+                    setStatus("Չհաջողվեց կարդալ ֆայլը։ Փորձեք կրկին։", "error");
                 };
                 reader.readAsArrayBuffer(file);
             });
@@ -255,14 +338,18 @@
 
 <body>
     <div id="root">
-        <div id="drop-zone">Սեղմեք ինձ կամ քաշեք և նետեք PDF ֆայլը այստեղ</div>
+        <div id="drop-zone" role="button" tabindex="0" aria-describedby="status">Սեղմեք ինձ կամ քաշեք և նետեք PDF ֆայլը այստեղ</div>
 
         <input type="file" id="file-input" accept="application/pdf" style="display:none">
 
+        <label for="name-per-file">Փաստաթղթերի անվանումը</label>
         <input type="text" id="name-per-file" value="Հայցադիմումներ" placeholder="Փաստաթղթերի անվանումը">
+
+        <label for="pages-per-file">Յուրաքանչյուր փաստաթղթի էջերի քանակը</label>
         <input type="number" id="pages-per-file" min="1" value="1" placeholder="Յուրաքանչյուր փաստաթղթի էջերի քանակը">
 
         <button id="split-btn" disabled>Տարանջատել PDF և ներբեռնել ZIP</button>
+        <p id="status" aria-live="polite"></p>
 
         <a href="../index.html" class="back-btn" aria-label="Back to home">
             <span class="arrow">←</span>
