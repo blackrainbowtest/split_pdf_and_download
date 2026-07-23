@@ -14,67 +14,278 @@
             font-family: 'GHEA grapalat', serif;
         }
 
+        body {
+            background-color: #0b1220;
+        }
+
+        button,
+        input {
+            font-family: inherit;
+        }
+
         #root {
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
             flex-direction: column;
-            background-image: linear-gradient(180deg, rgba(8, 12, 20, 0.9), rgba(2, 6, 12, 0.95)), url('./logo_bg.png');
+            background-image:
+                linear-gradient(180deg,
+                    rgba(8, 12, 20, 0.9),
+                    rgba(2, 6, 12, 0.95)),
+                url('./logo_bg.png');
             background-repeat: no-repeat;
             background-position: center;
             background-size: cover;
+            background-attachment: fixed;
             background-color: #0b1220;
-            padding: 20px;
+            padding: 90px 20px 40px;
+        }
+
+        .merger-container {
+            max-width: 760px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         #drop-zone {
-            max-width: 350px;
+            max-width: 520px;
             width: 100%;
-            height: 150px;
-            border: 2px dashed #34D399;
+            min-height: 150px;
+            border: 2px dashed #34d399;
             display: flex;
             justify-content: center;
             align-items: center;
             text-align: center;
-            color: #D1FAE5;
-            border-radius: 10px;
+            color: #d1fae5;
+            border-radius: 12px;
             margin-bottom: 15px;
             padding: 20px;
             cursor: pointer;
+            background-color: rgba(0, 0, 0, 0.15);
+            transition:
+                background-color 0.2s ease,
+                border-color 0.2s ease,
+                transform 0.2s ease;
         }
 
         #drop-zone:hover {
             background-color: rgba(255, 255, 255, 0.04);
-            border-color: #93C5FD;
+            border-color: #93c5fd;
         }
 
         #drop-zone.dragover {
-            background-color: rgba(255, 255, 255, 0.06);
+            background-color: rgba(52, 211, 153, 0.12);
+            border-color: #5eead4;
+            transform: scale(1.01);
         }
 
-        input,
-        button {
-            max-width: 350px;
+        #status-message {
+            max-width: 520px;
+            width: 100%;
+            min-height: 24px;
+            margin-bottom: 10px;
+            color: #cbd5e1;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        #status-message.error {
+            color: #fca5a5;
+        }
+
+        #status-message.success {
+            color: #86efac;
+        }
+
+        #pdf-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 15px 0 25px;
+        }
+
+        .pdf-card {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 230px minmax(0, 1fr) 54px;
+            gap: 18px;
+            padding: 16px;
+            border-radius: 14px;
+            background: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+        }
+
+        .pdf-preview {
+            width: 230px;
+            min-height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border-radius: 8px;
+            background-color: #020617;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .pdf-preview canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            background-color: white;
+        }
+
+        .pdf-loading {
+            padding: 15px;
+            color: #cbd5e1;
+            text-align: center;
+            font-size: 15px;
+        }
+
+        .pdf-information {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .pdf-name {
+            color: #f8fafc;
+            font-size: 19px;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .page-navigation {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .page-button,
+        .order-button {
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            transition:
+                background-color 0.2s ease,
+                transform 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        .page-button {
+            width: 42px;
+            height: 42px;
+            color: white;
+            background-color: #334155;
+            font-size: 22px;
+        }
+
+        .page-button:hover:enabled {
+            background-color: #475569;
+            transform: translateY(-1px);
+        }
+
+        .page-button:disabled,
+        .order-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.35;
+        }
+
+        .page-number-input {
+            width: 62px;
+            height: 42px;
+            padding: 5px 8px;
+            border-radius: 7px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            outline: none;
+            background-color: rgba(2, 6, 23, 0.8);
+            color: white;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .page-number-input:focus {
+            border-color: #34d399;
+        }
+
+        .page-count {
+            color: #cbd5e1;
+            font-size: 17px;
+        }
+
+        .order-controls {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .order-button {
+            width: 46px;
+            height: 46px;
+            color: white;
+            background-color: #1e293b;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            font-size: 21px;
+        }
+
+        .order-button:hover:enabled {
+            background-color: #0f766e;
+            transform: scale(1.05);
+        }
+
+        .output-controls {
+            max-width: 520px;
+            width: 100%;
+        }
+
+        #output-name,
+        #merge-btn {
             width: 100%;
             min-height: 52px;
-            font-size: 22px;
+            font-size: 19px;
             margin-top: 10px;
+            border-radius: 7px;
         }
 
-        button:enabled {
-            background-color: #10B981;
+        #output-name {
+            padding: 10px 14px;
             color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
+            background-color: rgba(15, 23, 42, 0.88);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            outline: none;
         }
 
-        a {
-            margin-top: 20px;
-            color: #93C5FD;
-            font-size: 18px;
-            text-decoration: none;
+        #output-name:focus {
+            border-color: #34d399;
+        }
+
+        #merge-btn {
+            border: none;
+            color: white;
+            background-color: #10b981;
+            cursor: pointer;
+            transition:
+                background-color 0.2s ease,
+                transform 0.2s ease,
+                opacity 0.2s ease;
+        }
+
+        #merge-btn:hover:enabled {
+            background-color: #059669;
+            transform: translateY(-1px);
+        }
+
+        #merge-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
         }
 
         .back-btn {
@@ -92,45 +303,103 @@
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(8px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
             transition:
-                background .25s ease,
-                transform .25s ease,
-                box-shadow .25s ease,
-                border-color .25s ease;
+                background 0.25s ease,
+                transform 0.25s ease,
+                box-shadow 0.25s ease,
+                border-color 0.25s ease;
             z-index: 1000;
         }
 
         .back-btn .arrow {
             font-size: 18px;
-            transition: transform .25s ease;
+            transition: transform 0.25s ease;
         }
 
         .back-btn:hover {
             background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(94, 234, 212, .6);
+            border-color: rgba(94, 234, 212, 0.6);
             transform: translateY(-2px);
-            box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
         }
 
         .back-btn:hover .arrow {
             transform: translateX(-4px);
         }
+
+        @media (max-width: 680px) {
+            #root {
+                padding-top: 85px;
+            }
+
+            .pdf-card {
+                grid-template-columns: 1fr 50px;
+            }
+
+            .pdf-preview {
+                grid-column: 1;
+                width: 100%;
+                max-width: 280px;
+                margin: 0 auto;
+            }
+
+            .pdf-information {
+                grid-column: 1;
+            }
+
+            .order-controls {
+                grid-column: 2;
+                grid-row: 1 / span 2;
+            }
+
+            .back-btn {
+                top: 15px;
+                left: 15px;
+            }
+        }
     </style>
 
     <script type="module">
-        import { PDFDocument } from "https://cdn.jsdelivr.net/npm/pdf-lib@1.16.0/+esm";
+        import {
+            PDFDocument
+        } from "https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/+esm";
+
+        import * as pdfjsLib
+            from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs";
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
 
         document.addEventListener("DOMContentLoaded", () => {
             const dropZone = document.getElementById("drop-zone");
             const fileInput = document.getElementById("file-input");
             const mergeBtn = document.getElementById("merge-btn");
             const fileNameInput = document.getElementById("output-name");
+            const pdfList = document.getElementById("pdf-list");
+            const statusMessage = document.getElementById("status-message");
 
-            let files = [];
+            /*
+             * Каждый элемент массива представляет один PDF-файл.
+             *
+             * file:
+             *     Оригинальный объект File.
+             *
+             * pdfDocument:
+             *     Документ, открытый через PDF.js для предпросмотра.
+             *
+             * currentPage:
+             *     Текущая отображаемая страница.
+             *
+             * card:
+             *     HTML-карточка документа.
+             */
+            let pdfItems = [];
+            let loadingFiles = 0;
+            let isMerging = false;
 
-            dropZone.addEventListener("dragover", e => {
-                e.preventDefault();
+            dropZone.addEventListener("dragover", event => {
+                event.preventDefault();
                 dropZone.classList.add("dragover");
             });
 
@@ -138,70 +407,563 @@
                 dropZone.classList.remove("dragover");
             });
 
-            dropZone.addEventListener("drop", e => {
-                e.preventDefault();
+            dropZone.addEventListener("drop", event => {
+                event.preventDefault();
                 dropZone.classList.remove("dragover");
-                files = Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf");
-                updateUI();
+
+                addFiles(event.dataTransfer.files);
             });
 
             dropZone.addEventListener("click", () => {
-                fileInput.value = null;
+                fileInput.value = "";
                 fileInput.click();
             });
 
-            fileInput.addEventListener("change", e => {
-                files = Array.from(e.target.files).filter(f => f.type === "application/pdf");
-                updateUI();
+            fileInput.addEventListener("change", event => {
+                addFiles(event.target.files);
             });
 
-            function updateUI() {
-                if (files.length > 0) {
-                    dropZone.innerText = `Ընտրված է ${files.length} PDF ֆայլ`;
-                    mergeBtn.disabled = false;
+            /*
+             * Добавляет PDF к уже существующему списку.
+             * Старые документы при новом выборе не удаляются.
+             */
+            async function addFiles(selectedFiles) {
+                const validFiles = Array.from(selectedFiles).filter(file => {
+                    return (
+                        file.type === "application/pdf"
+                        || file.name.toLowerCase().endsWith(".pdf")
+                    );
+                });
+
+                if (validFiles.length === 0) {
+                    setStatus("PDF ֆայլեր չեն գտնվել։", "error");
+                    return;
+                }
+
+                loadingFiles += validFiles.length;
+                updateGlobalUI();
+
+                for (const file of validFiles) {
+                    await addPdfFile(file);
+                    loadingFiles--;
+                    updateGlobalUI();
+                }
+
+                setStatus(
+                    `Ավելացվել է ${validFiles.length} PDF ֆայլ։`,
+                    "success"
+                );
+            }
+
+            async function addPdfFile(file) {
+                const item = {
+                    file: file,
+                    pdfDocument: null,
+                    currentPage: 1,
+                    renderTask: null,
+                    renderId: 0,
+                    card: null,
+                    canvas: null,
+                    pageInput: null,
+                    pageCount: null,
+                    previousButton: null,
+                    nextButton: null,
+                    upButton: null,
+                    downButton: null
+                };
+
+                item.card = createLoadingCard(file.name);
+                pdfItems.push(item);
+                pdfList.appendChild(item.card);
+                updateOrderButtons();
+
+                try {
+                    const fileBuffer = await file.arrayBuffer();
+
+                    item.pdfDocument = await pdfjsLib.getDocument({
+                        data: new Uint8Array(fileBuffer)
+                    }).promise;
+
+                    buildPdfCard(item);
+                    await renderPage(item);
+                } catch (error) {
+                    console.error(error);
+
+                    const itemIndex = pdfItems.indexOf(item);
+
+                    if (itemIndex !== -1)
+                        pdfItems.splice(itemIndex, 1);
+
+                    item.card.remove();
+
+                    setStatus(
+                        `Չհաջողվեց բացել «${file.name}» ֆայլը։`,
+                        "error"
+                    );
+
+                    updateOrderButtons();
+                }
+            }
+
+            function createLoadingCard(fileName) {
+                const card = document.createElement("article");
+                const preview = document.createElement("div");
+                const information = document.createElement("div");
+                const name = document.createElement("h2");
+                const loading = document.createElement("p");
+
+                card.className = "pdf-card";
+                preview.className = "pdf-preview";
+                information.className = "pdf-information";
+                name.className = "pdf-name";
+                loading.className = "pdf-loading";
+
+                name.textContent = fileName;
+                loading.textContent = "PDF ֆայլը մշակվում է...";
+
+                preview.appendChild(loading);
+                information.appendChild(name);
+
+                card.appendChild(preview);
+                card.appendChild(information);
+
+                return card;
+            }
+
+            function buildPdfCard(item) {
+                const preview = document.createElement("div");
+                const canvas = document.createElement("canvas");
+
+                const information = document.createElement("div");
+                const name = document.createElement("h2");
+                const navigation = document.createElement("div");
+
+                const previousButton = document.createElement("button");
+                const pageInput = document.createElement("input");
+                const pageCount = document.createElement("span");
+                const nextButton = document.createElement("button");
+
+                const orderControls = document.createElement("div");
+                const upButton = document.createElement("button");
+                const downButton = document.createElement("button");
+
+                preview.className = "pdf-preview";
+                information.className = "pdf-information";
+                name.className = "pdf-name";
+                navigation.className = "page-navigation";
+                orderControls.className = "order-controls";
+
+                previousButton.className = "page-button";
+                nextButton.className = "page-button";
+                upButton.className = "order-button";
+                downButton.className = "order-button";
+
+                pageInput.className = "page-number-input";
+                pageCount.className = "page-count";
+
+                name.textContent = item.file.name;
+
+                previousButton.type = "button";
+                previousButton.textContent = "←";
+                previousButton.title = "Նախորդ էջ";
+
+                nextButton.type = "button";
+                nextButton.textContent = "→";
+                nextButton.title = "Հաջորդ էջ";
+
+                pageInput.type = "number";
+                pageInput.min = "1";
+                pageInput.max = String(item.pdfDocument.numPages);
+                pageInput.value = String(item.currentPage);
+                pageInput.setAttribute(
+                    "aria-label",
+                    "Current PDF page"
+                );
+
+                pageCount.textContent =
+                    `/ ${item.pdfDocument.numPages}`;
+
+                upButton.type = "button";
+                upButton.textContent = "↑";
+                upButton.title = "Տեղափոխել վերև";
+
+                downButton.type = "button";
+                downButton.textContent = "↓";
+                downButton.title = "Տեղափոխել ներքև";
+
+                previousButton.addEventListener("click", async () => {
+                    if (item.currentPage <= 1)
+                        return;
+
+                    item.currentPage--;
+                    await renderPage(item);
+                });
+
+                nextButton.addEventListener("click", async () => {
+                    if (
+                        item.currentPage
+                        >= item.pdfDocument.numPages
+                    )
+                        return;
+
+                    item.currentPage++;
+                    await renderPage(item);
+                });
+
+                pageInput.addEventListener("change", async () => {
+                    await changePageFromInput(item);
+                });
+
+                pageInput.addEventListener("keydown", async event => {
+                    if (event.key !== "Enter")
+                        return;
+
+                    event.preventDefault();
+                    await changePageFromInput(item);
+                    pageInput.blur();
+                });
+
+                upButton.addEventListener("click", () => {
+                    moveItem(item, -1);
+                });
+
+                downButton.addEventListener("click", () => {
+                    moveItem(item, 1);
+                });
+
+                preview.appendChild(canvas);
+
+                navigation.appendChild(previousButton);
+                navigation.appendChild(pageInput);
+                navigation.appendChild(pageCount);
+                navigation.appendChild(nextButton);
+
+                information.appendChild(name);
+                information.appendChild(navigation);
+
+                orderControls.appendChild(upButton);
+                orderControls.appendChild(downButton);
+
+                item.card.replaceChildren(
+                    preview,
+                    information,
+                    orderControls
+                );
+
+                item.canvas = canvas;
+                item.pageInput = pageInput;
+                item.pageCount = pageCount;
+                item.previousButton = previousButton;
+                item.nextButton = nextButton;
+                item.upButton = upButton;
+                item.downButton = downButton;
+
+                updatePageButtons(item);
+                updateOrderButtons();
+            }
+
+            async function changePageFromInput(item) {
+                let pageNumber = Number.parseInt(
+                    item.pageInput.value,
+                    10
+                );
+
+                if (Number.isNaN(pageNumber))
+                    pageNumber = item.currentPage;
+
+                pageNumber = Math.max(
+                    1,
+                    Math.min(pageNumber, item.pdfDocument.numPages)
+                );
+
+                item.currentPage = pageNumber;
+                await renderPage(item);
+            }
+
+            async function renderPage(item) {
+                if (!item.pdfDocument || !item.canvas)
+                    return;
+
+                const currentRenderId = ++item.renderId;
+                const page = await item.pdfDocument.getPage(
+                    item.currentPage
+                );
+
+                /*
+                 * Сначала получаем страницу в масштабе 1,
+                 * затем подбираем масштаб под ширину миниатюры.
+                 */
+                const baseViewport = page.getViewport({
+                    scale: 1
+                });
+
+                const targetWidth = 220;
+                const scale = targetWidth / baseViewport.width;
+                const viewport = page.getViewport({
+                    scale: scale
+                });
+
+                const pixelRatio = window.devicePixelRatio || 1;
+                const canvasContext = item.canvas.getContext("2d");
+
+                item.canvas.width = Math.floor(
+                    viewport.width * pixelRatio
+                );
+
+                item.canvas.height = Math.floor(
+                    viewport.height * pixelRatio
+                );
+
+                item.canvas.style.width = `${viewport.width}px`;
+                item.canvas.style.height = `${viewport.height}px`;
+
+                if (item.renderTask) {
+                    try {
+                        item.renderTask.cancel();
+                    } catch (error) {
+                        console.error(error);
+                    }
+                }
+
+                item.renderTask = page.render({
+                    canvasContext: canvasContext,
+                    viewport: viewport,
+                    transform: pixelRatio !== 1
+                        ? [pixelRatio, 0, 0, pixelRatio, 0, 0]
+                        : null
+                });
+
+                try {
+                    await item.renderTask.promise;
+                } catch (error) {
+                    if (error?.name !== "RenderingCancelledException")
+                        console.error(error);
+                }
+
+                if (currentRenderId !== item.renderId)
+                    return;
+
+                item.pageInput.value = String(item.currentPage);
+                updatePageButtons(item);
+            }
+
+            function updatePageButtons(item) {
+                if (!item.pdfDocument)
+                    return;
+
+                item.previousButton.disabled =
+                    item.currentPage <= 1;
+
+                item.nextButton.disabled =
+                    item.currentPage >= item.pdfDocument.numPages;
+            }
+
+            /*
+             * direction:
+             *     -1 означает перемещение вверх.
+             *      1 означает перемещение вниз.
+             */
+            function moveItem(item, direction) {
+                const currentIndex = pdfItems.indexOf(item);
+                const newIndex = currentIndex + direction;
+
+                if (
+                    currentIndex === -1
+                    || newIndex < 0
+                    || newIndex >= pdfItems.length
+                ) {
+                    return;
+                }
+
+                const temporaryItem = pdfItems[currentIndex];
+
+                pdfItems[currentIndex] = pdfItems[newIndex];
+                pdfItems[newIndex] = temporaryItem;
+
+                renderPdfOrder();
+            }
+
+            function renderPdfOrder() {
+                const fragment = document.createDocumentFragment();
+
+                for (const item of pdfItems)
+                    fragment.appendChild(item.card);
+
+                pdfList.appendChild(fragment);
+                updateOrderButtons();
+            }
+
+            function updateOrderButtons() {
+                pdfItems.forEach((item, index) => {
+                    if (!item.upButton || !item.downButton)
+                        return;
+
+                    item.upButton.disabled = index === 0;
+                    item.downButton.disabled =
+                        index === pdfItems.length - 1;
+                });
+
+                updateGlobalUI();
+            }
+
+            function updateGlobalUI() {
+                const hasFiles = pdfItems.length > 0;
+                const isLoading = loadingFiles > 0;
+
+                mergeBtn.disabled =
+                    !hasFiles || isLoading || isMerging;
+
+                if (isMerging) {
+                    mergeBtn.textContent =
+                        "PDF ֆայլերը միացվում են...";
+                } else if (isLoading) {
+                    mergeBtn.textContent =
+                        "Սպասեք, ֆայլերը մշակվում են...";
                 } else {
-                    dropZone.innerText = "Քաշեք կամ ընտրեք մի քանի PDF ֆայլ";
-                    mergeBtn.disabled = true;
+                    mergeBtn.textContent =
+                        "Միացնել և ներբեռնել PDF";
+                }
+
+                if (hasFiles) {
+                    dropZone.textContent =
+                        `Ընտրված է ${pdfItems.length} PDF ֆայլ։ `
+                        + "Կարող եք ավելացնել նոր ֆայլեր։";
+                } else {
+                    dropZone.textContent =
+                        "Քաշեք կամ ընտրեք մի քանի PDF ֆայլ";
                 }
             }
 
             mergeBtn.addEventListener("click", async () => {
-                if (!files.length) return;
-
-                const mergedPdf = await PDFDocument.create();
-
-                for (const file of files) {
-                    const bytes = await file.arrayBuffer();
-                    const pdf = await PDFDocument.load(bytes);
-                    const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-                    pages.forEach(p => mergedPdf.addPage(p));
+                if (
+                    pdfItems.length === 0
+                    || loadingFiles > 0
+                    || isMerging
+                ) {
+                    return;
                 }
 
-                const finalBytes = await mergedPdf.save();
-                const blob = new Blob([finalBytes], { type: "application/pdf" });
+                isMerging = true;
+                updateGlobalUI();
+                setStatus("PDF ֆայլերը միացվում են...", "");
 
-                const name = fileNameInput.value.trim() || "merged";
-                const link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `${name}.pdf`;
-                link.click();
-                URL.revokeObjectURL(link.href);
+                try {
+                    const mergedPdf = await PDFDocument.create();
+
+                    /*
+                     * Файлы объединяются именно в порядке
+                     * элементов массива pdfItems.
+                     */
+                    for (const item of pdfItems) {
+                        const bytes = await item.file.arrayBuffer();
+                        const sourcePdf = await PDFDocument.load(
+                            bytes
+                        );
+
+                        const copiedPages = await mergedPdf.copyPages(
+                            sourcePdf,
+                            sourcePdf.getPageIndices()
+                        );
+
+                        for (const page of copiedPages)
+                            mergedPdf.addPage(page);
+                    }
+
+                    const finalBytes = await mergedPdf.save();
+
+                    const blob = new Blob(
+                        [finalBytes],
+                        {
+                            type: "application/pdf"
+                        }
+                    );
+
+                    const outputName = createSafeFileName(
+                        fileNameInput.value
+                    );
+
+                    const downloadUrl =
+                        URL.createObjectURL(blob);
+
+                    const downloadLink =
+                        document.createElement("a");
+
+                    downloadLink.href = downloadUrl;
+                    downloadLink.download = `${outputName}.pdf`;
+
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    downloadLink.remove();
+
+                    window.setTimeout(() => {
+                        URL.revokeObjectURL(downloadUrl);
+                    }, 1000);
+
+                    setStatus(
+                        "PDF ֆայլը հաջողությամբ ստեղծվել է։",
+                        "success"
+                    );
+                } catch (error) {
+                    console.error(error);
+
+                    setStatus(
+                        "PDF ֆայլերը միացնել չհաջողվեց։",
+                        "error"
+                    );
+                } finally {
+                    isMerging = false;
+                    updateGlobalUI();
+                }
             });
+
+            function createSafeFileName(value) {
+                let name = value.trim();
+
+                if (name.toLowerCase().endsWith(".pdf"))
+                    name = name.slice(0, -4);
+
+                name = name.replace(/[\\/:*?"<>|]/g, "_");
+
+                if (name.length === 0)
+                    return "merged";
+
+                return name;
+            }
+
+            function setStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = "";
+
+                if (type)
+                    statusMessage.classList.add(type);
+            }
+
+            updateGlobalUI();
         });
     </script>
 </head>
 
 <body>
     <div id="root">
-        <div id="drop-zone">
-            Քաշեք կամ ընտրեք մի քանի PDF ֆայլ
-        </div>
+        <main class="merger-container">
+            <div id="drop-zone">
+                Քաշեք կամ ընտրեք մի քանի PDF ֆայլ
+            </div>
 
-        <input type="file" id="file-input" accept="application/pdf" multiple style="display:none">
+            <input type="file" id="file-input" accept="application/pdf,.pdf" multiple hidden>
 
-        <input type="text" id="output-name" placeholder="Եզրափակիչ ֆայլի անունը">
+            <div id="status-message" aria-live="polite"></div>
 
-        <button id="merge-btn" disabled>Միացնել և ներբեռնել PDF</button>
+            <section id="pdf-list" aria-label="Selected PDF documents"></section>
+
+            <div class="output-controls">
+                <input type="text" id="output-name" placeholder="Եզրափակիչ ֆայլի անունը">
+
+                <button id="merge-btn" type="button" disabled>
+                    Միացնել և ներբեռնել PDF
+                </button>
+            </div>
+        </main>
 
         <a href="../index.html" class="back-btn" aria-label="Back to home">
             <span class="arrow">←</span>
