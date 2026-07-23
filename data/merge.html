@@ -358,6 +358,145 @@
                 left: 15px;
             }
         }
+
+        .remove-button {
+            width: 46px;
+            height: 46px;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            border-radius: 7px;
+            color: #fecaca;
+            background-color: rgba(127, 29, 29, 0.45);
+            font-size: 20px;
+            cursor: pointer;
+            transition:
+                background-color 0.2s ease,
+                transform 0.2s ease,
+                border-color 0.2s ease;
+        }
+
+        .remove-button:hover:enabled {
+            background-color: rgba(185, 28, 28, 0.75);
+            border-color: #f87171;
+            transform: scale(1.05);
+        }
+
+        .remove-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+
+        /*
+ * Затемнение всей страницы во время обработки.
+ */
+        .process-popup {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: rgba(2, 6, 23, 0.78);
+            backdrop-filter: blur(7px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition:
+                opacity 0.25s ease,
+                visibility 0.25s ease;
+            z-index: 3000;
+        }
+
+        .process-popup.visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .process-popup-content {
+            max-width: 390px;
+            width: 100%;
+            padding: 28px 24px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 16px;
+            color: #f8fafc;
+            background-color: rgba(15, 23, 42, 0.97);
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.55);
+            text-align: center;
+            transform: translateY(15px) scale(0.97);
+            transition: transform 0.25s ease;
+        }
+
+        .process-popup.visible .process-popup-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .popup-spinner {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 18px;
+            border: 5px solid rgba(148, 163, 184, 0.2);
+            border-top-color: #34d399;
+            border-radius: 50%;
+            animation: popup-spin 0.85s linear infinite;
+        }
+
+        .process-popup.success .popup-spinner {
+            display: none;
+        }
+
+        .process-popup.error .popup-spinner {
+            display: none;
+        }
+
+        .popup-icon {
+            display: none;
+            margin-bottom: 15px;
+            font-size: 52px;
+        }
+
+        .process-popup.success .popup-icon,
+        .process-popup.error .popup-icon {
+            display: block;
+        }
+
+        .popup-title {
+            margin-bottom: 10px;
+            font-size: 23px;
+        }
+
+        .popup-message {
+            color: #cbd5e1;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .popup-close-button {
+            display: none;
+            width: 100%;
+            min-height: 46px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 7px;
+            color: white;
+            background-color: #10b981;
+            font-size: 17px;
+            cursor: pointer;
+        }
+
+        .popup-close-button:hover {
+            background-color: #059669;
+        }
+
+        .process-popup.success .popup-close-button,
+        .process-popup.error .popup-close-button {
+            display: block;
+        }
+
+        @keyframes popup-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 
     <script type="module">
@@ -378,6 +517,13 @@
             const fileNameInput = document.getElementById("output-name");
             const pdfList = document.getElementById("pdf-list");
             const statusMessage = document.getElementById("status-message");
+            const processPopup = document.getElementById("process-popup");
+            const popupTitle = document.getElementById("popup-title");
+            const popupMessage = document.getElementById("popup-message");
+            const popupIcon = document.getElementById("popup-icon");
+            const popupCloseButton = document.getElementById(
+                "popup-close-button"
+            );
 
             /*
              * Каждый элемент массива представляет один PDF-файл.
@@ -469,7 +615,9 @@
                     previousButton: null,
                     nextButton: null,
                     upButton: null,
-                    downButton: null
+                    downButton: null,
+                    removeButton: null,
+                    isRemoved: false
                 };
 
                 item.card = createLoadingCard(file.name);
@@ -546,6 +694,7 @@
                 const orderControls = document.createElement("div");
                 const upButton = document.createElement("button");
                 const downButton = document.createElement("button");
+                const removeButton = document.createElement("button");
 
                 preview.className = "pdf-preview";
                 information.className = "pdf-information";
@@ -557,6 +706,7 @@
                 nextButton.className = "page-button";
                 upButton.className = "order-button";
                 downButton.className = "order-button";
+                removeButton.className = "remove-button";
 
                 pageInput.className = "page-number-input";
                 pageCount.className = "page-count";
@@ -590,6 +740,14 @@
                 downButton.type = "button";
                 downButton.textContent = "↓";
                 downButton.title = "Տեղափոխել ներքև";
+
+                removeButton.type = "button";
+                removeButton.textContent = "✕";
+                removeButton.title = "Հեռացնել PDF ֆայլը";
+                removeButton.setAttribute(
+                    "aria-label",
+                    `Remove ${item.file.name}`
+                );
 
                 previousButton.addEventListener("click", async () => {
                     if (item.currentPage <= 1)
@@ -631,6 +789,10 @@
                     moveItem(item, 1);
                 });
 
+                removeButton.addEventListener("click", async () => {
+                    await removePdfItem(item);
+                });
+
                 preview.appendChild(canvas);
 
                 navigation.appendChild(previousButton);
@@ -643,6 +805,7 @@
 
                 orderControls.appendChild(upButton);
                 orderControls.appendChild(downButton);
+                orderControls.appendChild(removeButton);
 
                 item.card.replaceChildren(
                     preview,
@@ -657,6 +820,7 @@
                 item.nextButton = nextButton;
                 item.upButton = upButton;
                 item.downButton = downButton;
+                item.removeButton = removeButton;
 
                 updatePageButtons(item);
                 updateOrderButtons();
@@ -681,13 +845,20 @@
             }
 
             async function renderPage(item) {
-                if (!item.pdfDocument || !item.canvas)
+                if (
+                    item.isRemoved
+                    || !item.pdfDocument
+                    || !item.canvas
+                )
                     return;
 
                 const currentRenderId = ++item.renderId;
                 const page = await item.pdfDocument.getPage(
                     item.currentPage
                 );
+
+                if (item.isRemoved)
+                    return;
 
                 /*
                  * Сначала получаем страницу в масштабе 1,
@@ -756,6 +927,70 @@
 
                 item.nextButton.disabled =
                     item.currentPage >= item.pdfDocument.numPages;
+            }
+
+            async function removePdfItem(item) {
+                const itemIndex = pdfItems.indexOf(item);
+
+                if (itemIndex === -1 || isMerging)
+                    return;
+
+                item.isRemoved = true;
+
+                if (item.removeButton)
+                    item.removeButton.disabled = true;
+
+                if (item.renderTask) {
+                    try {
+                        item.renderTask.cancel();
+                    } catch (error) {
+                        console.error(error);
+                    }
+
+                    item.renderTask = null;
+                }
+
+                if (item.pdfDocument) {
+                    try {
+                        await item.pdfDocument.destroy();
+                    } catch (error) {
+                        console.error(error);
+                    }
+
+                    item.pdfDocument = null;
+                }
+
+                if (item.canvas) {
+                    const context = item.canvas.getContext("2d");
+
+                    if (context) {
+                        context.clearRect(
+                            0,
+                            0,
+                            item.canvas.width,
+                            item.canvas.height
+                        );
+                    }
+
+                    item.canvas.width = 0;
+                    item.canvas.height = 0;
+                    item.canvas = null;
+                }
+
+                pdfItems.splice(itemIndex, 1);
+
+                if (item.card)
+                    item.card.remove();
+
+                item.card = null;
+                item.file = null;
+
+                updateOrderButtons();
+
+                setStatus(
+                    `PDF ֆայլը հեռացվել է։ Մնացել է ${pdfItems.length} ֆայլ։`,
+                    "success"
+                );
             }
 
             /*
@@ -834,6 +1069,96 @@
                 }
             }
 
+            function showProcessingPopup() {
+                processPopup.className = "process-popup visible";
+                popupIcon.textContent = "";
+                popupTitle.textContent = "PDF ֆայլերը միացվում են";
+                popupMessage.textContent =
+                    "Խնդրում ենք սպասել։ Մի փակեք այս էջը։";
+            }
+
+            function showSuccessPopup() {
+                processPopup.className =
+                    "process-popup visible success";
+                popupIcon.textContent = "✓";
+                popupTitle.textContent = "PDF ֆայլը պատրաստ է";
+                popupMessage.textContent =
+                    "Ֆայլը ներբեռնվել է։ Կարող եք ավելացնել նոր PDF ֆայլեր։";
+            }
+
+            function showErrorPopup() {
+                processPopup.className =
+                    "process-popup visible error";
+                popupIcon.textContent = "✕";
+                popupTitle.textContent = "Սխալ";
+                popupMessage.textContent =
+                    "PDF ֆայլերը միացնել չհաջողվեց։";
+            }
+
+            function closePopup() {
+                processPopup.className = "process-popup";
+            }
+
+            popupCloseButton.addEventListener("click", closePopup);
+
+            async function clearPdfWorkspace() {
+                const itemsToClear = [...pdfItems];
+
+                pdfItems = [];
+
+                for (const item of itemsToClear) {
+                    item.isRemoved = true;
+
+                    if (item.renderTask) {
+                        try {
+                            item.renderTask.cancel();
+                        } catch (error) {
+                            console.error(error);
+                        }
+
+                        item.renderTask = null;
+                    }
+
+                    if (item.pdfDocument) {
+                        try {
+                            await item.pdfDocument.destroy();
+                        } catch (error) {
+                            console.error(error);
+                        }
+
+                        item.pdfDocument = null;
+                    }
+
+                    if (item.canvas) {
+                        const context = item.canvas.getContext("2d");
+
+                        if (context) {
+                            context.clearRect(
+                                0,
+                                0,
+                                item.canvas.width,
+                                item.canvas.height
+                            );
+                        }
+
+                        item.canvas.width = 0;
+                        item.canvas.height = 0;
+                        item.canvas = null;
+                    }
+
+                    item.card = null;
+                    item.file = null;
+                }
+
+                pdfList.replaceChildren();
+                fileInput.value = "";
+                fileNameInput.value = "";
+                loadingFiles = 0;
+
+                setStatus("", "");
+                updateGlobalUI();
+            }
+
             mergeBtn.addEventListener("click", async () => {
                 if (
                     pdfItems.length === 0
@@ -845,20 +1170,18 @@
 
                 isMerging = true;
                 updateGlobalUI();
-                setStatus("PDF ֆայլերը միացվում են...", "");
+                showProcessingPopup();
 
                 try {
                     const mergedPdf = await PDFDocument.create();
+                    const orderedItems = [...pdfItems];
 
-                    /*
-                     * Файлы объединяются именно в порядке
-                     * элементов массива pdfItems.
-                     */
-                    for (const item of pdfItems) {
+                    for (const item of orderedItems) {
+                        if (!item.file)
+                            continue;
+
                         const bytes = await item.file.arrayBuffer();
-                        const sourcePdf = await PDFDocument.load(
-                            bytes
-                        );
+                        const sourcePdf = await PDFDocument.load(bytes);
 
                         const copiedPages = await mergedPdf.copyPages(
                             sourcePdf,
@@ -882,11 +1205,8 @@
                         fileNameInput.value
                     );
 
-                    const downloadUrl =
-                        URL.createObjectURL(blob);
-
-                    const downloadLink =
-                        document.createElement("a");
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const downloadLink = document.createElement("a");
 
                     downloadLink.href = downloadUrl;
                     downloadLink.download = `${outputName}.pdf`;
@@ -897,14 +1217,14 @@
 
                     window.setTimeout(() => {
                         URL.revokeObjectURL(downloadUrl);
-                    }, 1000);
+                    }, 1500);
 
-                    setStatus(
-                        "PDF ֆայլը հաջողությամբ ստեղծվել է։",
-                        "success"
-                    );
+                    await clearPdfWorkspace();
+                    showSuccessPopup();
                 } catch (error) {
                     console.error(error);
+
+                    showErrorPopup();
 
                     setStatus(
                         "PDF ֆայլերը միացնել չհաջողվեց։",
@@ -969,6 +1289,27 @@
             <span class="arrow">←</span>
             <span class="label">Գլխավոր էջ</span>
         </a>
+    </div>
+    <div id="process-popup" class="process-popup" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+        <div class="process-popup-content">
+            <div class="popup-spinner"></div>
+
+            <div id="popup-icon" class="popup-icon" aria-hidden="true">
+                ✓
+            </div>
+
+            <h2 id="popup-title" class="popup-title">
+                PDF ֆայլերը միացվում են
+            </h2>
+
+            <p id="popup-message" class="popup-message">
+                Խնդրում ենք սպասել։
+            </p>
+
+            <button id="popup-close-button" class="popup-close-button" type="button">
+                Փակել
+            </button>
+        </div>
     </div>
 </body>
 
