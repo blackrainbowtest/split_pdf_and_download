@@ -1,329 +1,748 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
-
-<head>
-	<meta charset="UTF-8">
-	<title>PDF Rotator</title>
-
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-	<style>
-		* {
-			margin: 0;
-			padding: 0;
-			box-sizing: border-box;
-			font-family: 'GHEA grapalat', serif;
-		}
-
-		#drop-zone {
-			max-width: 350px;
-			width: 100%;
-			height: 150px;
-			border: 2px dashed #34D399;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			text-align: center;
-			color: #D1FAE5;
-			border-radius: 10px;
-			margin-bottom: 15px;
-			padding: 20px;
-			cursor: pointer;
-		}
-
-		#drop-zone:hover {
-			background-color: rgba(255, 255, 255, 0.04);
-			border-color: #93C5FD;
-		}
-
-		#drop-zone.drag {
-			background: #1f2937;
-			border-color: #10B981;
-		}
-
-		canvas {
-			background: white;
-			border-radius: 10px;
-			margin-bottom: 10px;
-		}
-
-		button {
-			width: 300px;
-			padding: 12px;
-			margin-top: 8px;
-			border: none;
-			border-radius: 8px;
-			cursor: pointer;
-		}
-
-		#left {
-			background: #3B82F6;
-		}
-
-		#right {
-			background: #10B981;
-		}
-
-		#save {
-			background: #6366F1;
-		}
-
-		#save-pdf {
-			background: #F59E0B;
-		}
-
-		button:disabled {
-			opacity: .5;
-		}
-
-		.back-btn {
-			position: fixed;
-			top: 24px;
-			left: 24px;
-			display: flex;
-			align-items: center;
-			gap: 10px;
-			padding: 10px 16px;
-			border-radius: 999px;
-			text-decoration: none;
-			color: #e5e7eb;
-			font-size: 16px;
-			background: rgba(255, 255, 255, 0.06);
-			border: 1px solid rgba(255, 255, 255, 0.12);
-			backdrop-filter: blur(8px);
-			box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
-			transition:
-				background .25s ease,
-				transform .25s ease,
-				box-shadow .25s ease,
-				border-color .25s ease;
-			z-index: 1000;
-		}
-
-		.back-btn .arrow {
-			font-size: 18px;
-			transition: transform .25s ease;
-		}
-
-		.back-btn:hover {
-			background: rgba(255, 255, 255, 0.12);
-			border-color: rgba(94, 234, 212, .6);
-			transform: translateY(-2px);
-			box-shadow: 0 18px 40px rgba(0, 0, 0, .55);
-		}
-
-		.back-btn:hover .arrow {
-			transform: translateX(-4px);
-		}
-
-		#root {
-			min-height: 100vh;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			flex-direction: column;
-			background-image: linear-gradient(180deg, rgba(8, 12, 20, 0.9), rgba(2, 6, 12, 0.95)), url('./logo_bg.png');
-			background-repeat: no-repeat;
-			background-position: center;
-			background-size: cover;
-			background-color: #0b1220;
-			padding: 20px;
-		}
-	</style>
-</head>
-
-<body>
-	<div id="root">
-
-		<div id="drop-zone">Սեղմեք կամ տեղադրեք PDF ֆայլը այստեղ</div>
-		<input id="file-input" type="file" accept="application/pdf" multiple hidden>
-
-		<canvas id="previewCanvas"></canvas>
-
-		<div>Угол: <span id="angle">0°</span></div>
-
-		<div class="btn-row">
-			<button id="left" disabled>⟲ Պտտել ձախ</button>
-			<button id="right" disabled>⟳ Պտտել աջ</button>
-		</div>
-
-		<!-- РЯД 2: скачивание -->
-		<div class="btn-row">
-			<button id="save-pdf" disabled>Ներբեռնել PDF</button>
-			<button id="save" disabled>Ներբեռնել ZIP</button>
-		</div>
-
-		<a href="../index.html" class="back-btn" aria-label="Back to home">
-			<span class="arrow">←</span>
-			<span class="label">Գլխավոր էջ</span>
-		</a>
-	</div>
-
-	<script>
-		document.addEventListener("DOMContentLoaded", () => {
-
-			const { PDFDocument, degrees } = PDFLib;
-
-			pdfjsLib.GlobalWorkerOptions.workerSrc =
-				"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-			const dropZone = document.getElementById("drop-zone");
-			const fileInput = document.getElementById("file-input");
-			const canvas = document.getElementById("previewCanvas");
-			const ctx = canvas.getContext("2d");
-
-			const btnLeft = document.getElementById("left");
-			const btnRight = document.getElementById("right");
-			const btnSave = document.getElementById("save");
-			const btnSavePdf = document.getElementById("save-pdf");
-			const angleText = document.getElementById("angle");
-
-			let files = [];
-			let visualAngle = 0;
-			let pdfAngle = 0;
-
-			/* ===== DRAG & DROP ===== */
-			dropZone.onclick = () => fileInput.click();
-
-			dropZone.ondragover = e => {
-				e.preventDefault();
-				dropZone.classList.add("drag");
-			};
-
-			dropZone.ondragleave = () => {
-				dropZone.classList.remove("drag");
-			};
-
-			dropZone.ondrop = async e => {
-				e.preventDefault();
-				dropZone.classList.remove("drag");
-
-				files = Array.from(e.dataTransfer.files)
-					.filter(f => f.type === "application/pdf");
-
-				handleFiles();
-			};
-
-			fileInput.onchange = () => {
-				files = Array.from(fileInput.files)
-					.filter(f => f.type === "application/pdf");
-
-				handleFiles();
-			};
-
-			async function handleFiles() {
-				visualAngle = 0;
-				pdfAngle = 0;
-
-				canvas.style.transform = "rotate(0deg)";
-				angleText.textContent = "0°";
-
-				updateUI();
-
-				if (files.length) {
-					await renderPreview(files[0]);
-				}
-			}
-
-			/* ===== PREVIEW ===== */
-			async function renderPreview(file) {
-				const buffer = await file.arrayBuffer();
-				const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
-				const page = await pdf.getPage(1);
-
-				const viewport = page.getViewport({ scale: 0.6 });
-
-				canvas.width = viewport.width;
-				canvas.height = viewport.height;
-
-				await page.render({
-					canvasContext: ctx,
-					viewport
-				}).promise;
-			}
-
-			/* ===== UI ===== */
-			function updateUI() {
-				if (files.length) {
-					dropZone.textContent = `Выбрано ${files.length} PDF`;
-					btnLeft.disabled = false;
-					btnRight.disabled = false;
-					btnSave.disabled = false;
-					btnSavePdf.disabled = files.length !== 1;
-				} else {
-					dropZone.textContent = "Перетащи PDF или нажми";
-					btnLeft.disabled = true;
-					btnRight.disabled = true;
-					btnSave.disabled = true;
-					btnSavePdf.disabled = true;
-				}
-			}
-
-			/* ===== ROTATE ===== */
-			btnLeft.onclick = () => rotate(-90);
-			btnRight.onclick = () => rotate(90);
-
-			function rotate(delta) {
-				visualAngle += delta;
-				pdfAngle = (pdfAngle + delta + 360) % 360;
-
-				canvas.style.transform = `rotate(${visualAngle}deg)`;
-				angleText.textContent = pdfAngle + "°";
-			}
-
-			/* ===== SAVE ONE ===== */
-			btnSavePdf.onclick = async () => {
-				if (files.length !== 1) return;
-
-				const file = files[0];
-				const bytes = await file.arrayBuffer();
-				const pdf = await PDFDocument.load(bytes);
-
-				pdf.getPages().forEach(page => {
-					const base = page.getRotation().angle;
-					page.setRotation(degrees(base + pdfAngle));
-				});
-
-				const out = await pdf.save();
-				download(new Blob([out]), file.name.replace(".pdf", "_rotated.pdf"));
-			};
-
-			/* ===== SAVE ZIP ===== */
-			btnSave.onclick = async () => {
-				if (!files.length) return;
-
-				const zip = new JSZip();
-
-				for (const file of files) {
-					const bytes = await file.arrayBuffer();
-					const pdf = await PDFDocument.load(bytes);
-
-					pdf.getPages().forEach(page => {
-						const base = page.getRotation().angle;
-						page.setRotation(degrees(base + pdfAngle));
-					});
-
-					const out = await pdf.save();
-					zip.file(file.name, out);
-				}
-
-				const blob = await zip.generateAsync({ type: "blob" });
-				download(blob, "rotated.zip");
-			};
-
-			/* ===== DOWNLOAD ===== */
-			function download(blob, name) {
-				const a = document.createElement("a");
-				a.href = URL.createObjectURL(blob);
-				a.download = name;
-				a.click();
-			}
-
-		});
-	</script>
-
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Rotator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "GHEA grapalat", serif;
+      }
+
+      body {
+        background: #0b1220;
+        color: #e5e7eb;
+      }
+
+      #root {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        background-image:
+          linear-gradient(180deg, rgba(8, 12, 20, 0.9), rgba(2, 6, 12, 0.95)),
+          url("./logo_bg.png");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
+        background-attachment: fixed;
+        padding: 90px 20px 40px;
+      }
+
+      .container {
+        max-width: 900px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      #drop-zone {
+        max-width: 520px;
+        width: 100%;
+        min-height: 150px;
+        border: 2px dashed #34d399;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: #d1fae5;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        padding: 20px;
+        cursor: pointer;
+        background: rgba(0, 0, 0, 0.15);
+      }
+
+      #drop-zone:hover,
+      #drop-zone.drag {
+        background: rgba(52, 211, 153, 0.1);
+        border-color: #93c5fd;
+      }
+
+      .mode-box {
+        max-width: 520px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.88);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        cursor: pointer;
+      }
+
+      .mode-box input {
+        width: 21px;
+        height: 21px;
+        accent-color: #10b981;
+      }
+
+      #status {
+        min-height: 24px;
+        margin-bottom: 12px;
+        color: #cbd5e1;
+        text-align: center;
+      }
+
+      #status.error {
+        color: #fca5a5;
+      }
+
+      #status.success {
+        color: #86efac;
+      }
+
+      #global-view {
+        max-width: 520px;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      #global-view.hidden {
+        display: none;
+      }
+
+      .preview-frame {
+        max-width: 100%;
+        min-height: 160px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 12px;
+        overflow: hidden;
+        border-radius: 12px;
+        background: rgba(2, 6, 23, 0.78);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+      }
+
+      canvas {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        background: white;
+        border-radius: 8px;
+        transition: transform 0.2s ease;
+      }
+
+      .angle {
+        margin: 12px 0;
+        color: #e2e8f0;
+      }
+
+      .row {
+        max-width: 520px;
+        width: 100%;
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        min-height: 48px;
+        padding: 10px 14px;
+        margin-top: 8px;
+        border: 0;
+        border-radius: 8px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      button:hover:enabled {
+        filter: brightness(1.08);
+      }
+
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      #left {
+        background: #3b82f6;
+      }
+
+      #right {
+        background: #10b981;
+      }
+
+      #save-pdf {
+        background: #f59e0b;
+      }
+
+      #save-zip {
+        background: #6366f1;
+      }
+
+      .row > button {
+        flex: 1;
+      }
+
+      #pages {
+        width: 100%;
+        display: none;
+        flex-direction: column;
+        gap: 22px;
+        margin-bottom: 24px;
+      }
+
+      #pages.visible {
+        display: flex;
+      }
+
+      .pdf-section {
+        width: 100%;
+        padding: 16px;
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.88);
+        border: 1px solid rgba(148, 163, 184, 0.22);
+      }
+
+      .pdf-title {
+        margin-bottom: 14px;
+        font-size: 20px;
+        overflow-wrap: anywhere;
+      }
+
+      .page-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      .page-card {
+        display: grid;
+        grid-template-columns: 230px minmax(0, 1fr);
+        gap: 18px;
+        align-items: center;
+        padding: 14px;
+        border-radius: 11px;
+        background: rgba(2, 6, 23, 0.58);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+      }
+
+      .page-preview {
+        width: 230px;
+        min-height: 160px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border-radius: 8px;
+        background: #020617;
+      }
+
+      .page-info {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .page-number {
+        font-size: 18px;
+      }
+
+      .page-angle {
+        color: #cbd5e1;
+      }
+
+      .page-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .page-controls button {
+        margin: 0;
+        min-width: 105px;
+      }
+
+      .page-left {
+        background: #3b82f6;
+      }
+
+      .page-right {
+        background: #10b981;
+      }
+
+      .page-reset {
+        background: #475569;
+      }
+
+      .popup {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(2, 6, 23, 0.78);
+        backdrop-filter: blur(7px);
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        z-index: 3000;
+      }
+
+      .popup.visible {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+
+      .popup-card {
+        max-width: 390px;
+        width: calc(100% - 40px);
+        padding: 28px 24px;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.97);
+        text-align: center;
+      }
+
+      .spinner {
+        width: 52px;
+        height: 52px;
+        margin: 0 auto 18px;
+        border: 5px solid rgba(148, 163, 184, 0.2);
+        border-top-color: #34d399;
+        border-radius: 50%;
+        animation: spin 0.85s linear infinite;
+      }
+
+      .popup.success .spinner,
+      .popup.error .spinner {
+        display: none;
+      }
+
+      .popup-icon {
+        display: none;
+        font-size: 52px;
+        margin-bottom: 12px;
+      }
+
+      .popup.success .popup-icon,
+      .popup.error .popup-icon {
+        display: block;
+      }
+
+      .popup-close {
+        display: none;
+        width: 100%;
+        background: #10b981;
+      }
+
+      .popup.success .popup-close,
+      .popup.error .popup-close {
+        display: block;
+      }
+
+      .back-btn {
+        position: fixed;
+        top: 24px;
+        left: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: #e5e7eb;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        z-index: 1000;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (max-width: 680px) {
+        .row {
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .page-card {
+          grid-template-columns: 1fr;
+        }
+
+        .page-preview {
+          width: 100%;
+          max-width: 280px;
+          margin: auto;
+        }
+
+        .back-btn {
+          top: 15px;
+          left: 15px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="root">
+      <main class="container">
+        <div id="drop-zone">Սեղմեք կամ տեղադրեք PDF ֆայլը այստեղ</div>
+        <input
+          id="file-input"
+          type="file"
+          accept="application/pdf,.pdf"
+          multiple
+          hidden
+        />
+        <label class="mode-box"
+          ><input id="individual-mode" type="checkbox" /><span
+            >Պտտել էջերը առանձին — ցուցադրել և պտտել էջերը առանձին</span
+          ></label
+        >
+        <div id="status" aria-live="polite"></div>
+        <section id="global-view">
+          <div class="preview-frame"><canvas id="main-canvas"></canvas></div>
+          <div class="angle">
+            Բոլոր էջերի անկունը: <span id="global-angle">0°</span>
+          </div>
+          <div class="row">
+            <button id="left" disabled>⟲ Պտտել ձախ</button
+            ><button id="right" disabled>⟳ Պտտել աջ</button>
+          </div>
+        </section>
+        <section id="pages"></section>
+        <div class="row">
+          <button id="save-pdf" disabled>Ներբեռնել PDF</button
+          ><button id="save-zip" disabled>Ներբեռնել ZIP</button>
+        </div>
+      </main>
+      <a href="../index.html" class="back-btn"
+        ><span>←</span><span>Գլխավոր էջ</span></a
+      >
+    </div>
+    <div id="popup" class="popup">
+      <div class="popup-card">
+        <div class="spinner"></div>
+        <div id="popup-icon" class="popup-icon">✓</div>
+        <h2 id="popup-title">PDF ֆայլը մշակվում է</h2>
+        <p id="popup-message">Խնդրում ենք սպասել։</p>
+        <button id="popup-close" class="popup-close">Փակել</button>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const { PDFDocument, degrees } = PDFLib;
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        const drop = document.getElementById("drop-zone");
+        const input = document.getElementById("file-input");
+        const mode = document.getElementById("individual-mode");
+        const globalView = document.getElementById("global-view");
+        const pagesBox = document.getElementById("pages");
+        const mainCanvas = document.getElementById("main-canvas");
+        const left = document.getElementById("left");
+        const right = document.getElementById("right");
+        const savePdf = document.getElementById("save-pdf");
+        const saveZip = document.getElementById("save-zip");
+        const globalAngleText = document.getElementById("global-angle");
+        const status = document.getElementById("status");
+        const popup = document.getElementById("popup");
+        const popupTitle = document.getElementById("popup-title");
+        const popupMessage = document.getElementById("popup-message");
+        const popupIcon = document.getElementById("popup-icon");
+        const popupClose = document.getElementById("popup-close");
+        let items = [];
+        let globalAngle = 0;
+        let busy = false;
+
+        drop.onclick = () => {
+          input.value = "";
+          input.click();
+        };
+        drop.ondragover = (e) => {
+          e.preventDefault();
+          drop.classList.add("drag");
+        };
+        drop.ondragleave = () => drop.classList.remove("drag");
+        drop.ondrop = (e) => {
+          e.preventDefault();
+          drop.classList.remove("drag");
+          loadFiles(e.dataTransfer.files);
+        };
+        input.onchange = (e) => loadFiles(e.target.files);
+        left.onclick = () => rotateAll(-90);
+        right.onclick = () => rotateAll(90);
+        savePdf.onclick = () => saveSingle();
+        saveZip.onclick = () => saveArchive();
+        popupClose.onclick = () => (popup.className = "popup");
+        mode.onchange = async () => {
+          updateMode();
+          if (mode.checked && items.length) await renderPageCards();
+          updateUI();
+        };
+
+        async function loadFiles(fileList) {
+          const valid = [...fileList].filter(
+            (f) =>
+              f.type === "application/pdf" ||
+              f.name.toLowerCase().endsWith(".pdf"),
+          );
+          if (!valid.length) {
+            setStatus("PDF ֆայլեր չեն գտնվել։", "error");
+            return;
+          }
+          await clearWorkspace(false);
+          setStatus("PDF ֆայլերը մշակվում են...", "");
+          try {
+            for (const file of valid) {
+              const buffer = await file.arrayBuffer();
+              const pdf = await pdfjsLib.getDocument({
+                data: new Uint8Array(buffer),
+              }).promise;
+              items.push({
+                file,
+                pdf,
+                angles: new Array(pdf.numPages).fill(0),
+              });
+            }
+            globalAngle = 0;
+            globalAngleText.textContent = "0°";
+            mainCanvas.style.transform = "rotate(0deg)";
+            await renderMain();
+            updateMode();
+            if (mode.checked) await renderPageCards();
+            setStatus(`Ընտրված է ${items.length} PDF ֆայլ։`, "success");
+          } catch (err) {
+            console.error(err);
+            await clearWorkspace(false);
+            setStatus("PDF ֆայլերից մեկը բացել չհաջողվեց։", "error");
+          }
+          updateUI();
+        }
+
+        async function renderMain() {
+          if (!items.length) return;
+          const page = await items[0].pdf.getPage(1);
+          await drawPage(page, mainCanvas, 0.75);
+        }
+
+        async function renderPageCards() {
+          pagesBox.replaceChildren();
+          for (let fi = 0; fi < items.length; fi++) {
+            const section = document.createElement("section");
+            section.className = "pdf-section";
+            const title = document.createElement("h2");
+            title.className = "pdf-title";
+            title.textContent = items[fi].file.name;
+            const list = document.createElement("div");
+            list.className = "page-list";
+            section.append(title, list);
+            pagesBox.append(section);
+            for (let pi = 0; pi < items[fi].pdf.numPages; pi++) {
+              const card = createCard(fi, pi);
+              list.append(card);
+              const page = await items[fi].pdf.getPage(pi + 1);
+              await drawPage(page, card.querySelector("canvas"), 0.55);
+              refreshCard(fi, pi, card);
+            }
+          }
+        }
+
+        function createCard(fi, pi) {
+          const card = document.createElement("article");
+          card.className = "page-card";
+          card.innerHTML = `<div class="page-preview"><canvas></canvas></div><div class="page-info"><div class="page-number">Էջ ${pi + 1}</div><div class="page-angle"></div><div class="page-controls"><button class="page-left">⟲ Ձախ</button><button class="page-right">⟳ Աջ</button><button class="page-reset">Չեղարկել</button></div></div>`;
+          card.querySelector(".page-left").onclick = () => {
+            items[fi].angles[pi] = norm(items[fi].angles[pi] - 90);
+            refreshCard(fi, pi, card);
+          };
+          card.querySelector(".page-right").onclick = () => {
+            items[fi].angles[pi] = norm(items[fi].angles[pi] + 90);
+            refreshCard(fi, pi, card);
+          };
+          card.querySelector(".page-reset").onclick = () => {
+            items[fi].angles[pi] = 0;
+            refreshCard(fi, pi, card);
+          };
+          return card;
+        }
+
+        function refreshCard(fi, pi, card) {
+          const a = items[fi].angles[pi];
+          card.querySelector("canvas").style.transform = `rotate(${a}deg)`;
+          card.querySelector(".page-angle").textContent = `Անկյուն: ${a}°`;
+        }
+        function rotateAll(delta) {
+          globalAngle = norm(globalAngle + delta);
+          mainCanvas.style.transform = `rotate(${globalAngle}deg)`;
+          globalAngleText.textContent = `${globalAngle}°`;
+        }
+
+        async function saveSingle() {
+          if (items.length !== 1 || busy) return;
+          showBusy("PDF ֆայլը մշակվում է", "Խնդրում ենք սպասել։");
+          busy = true;
+          updateUI();
+          try {
+            const item = items[0];
+            const pdf = await PDFDocument.load(await item.file.arrayBuffer());
+            applyRotations(pdf, item);
+            download(
+              new Blob([await pdf.save()], { type: "application/pdf" }),
+              rotatedName(item.file.name),
+            );
+            await clearWorkspace(true);
+            showDone("PDF ֆայլը պատրաստ է", "Ֆայլը ներբեռնվել է։");
+          } catch (err) {
+            console.error(err);
+            showError("Սխալ", "PDF ֆայլը պահպանել չհաջողվեց։");
+          } finally {
+            busy = false;
+            updateUI();
+          }
+        }
+
+        async function saveArchive() {
+          if (!items.length || busy) return;
+          showBusy("ZIP ֆայլը ստեղծվում է", "PDF ֆայլերը մշակվում են։");
+          busy = true;
+          updateUI();
+          try {
+            const zip = new JSZip();
+            for (const item of items) {
+              const pdf = await PDFDocument.load(await item.file.arrayBuffer());
+              applyRotations(pdf, item);
+              zip.file(rotatedName(item.file.name), await pdf.save());
+            }
+            download(await zip.generateAsync({ type: "blob" }), "rotated.zip");
+            await clearWorkspace(true);
+            showDone("ZIP ֆայլը պատրաստ է", "Ֆայլը ներբեռնվել է։");
+          } catch (err) {
+            console.error(err);
+            showError("Սխալ", "ZIP ֆայլը ստեղծել չհաջողվեց։");
+          } finally {
+            busy = false;
+            updateUI();
+          }
+        }
+
+        function applyRotations(pdf, item) {
+          pdf.getPages().forEach((page, i) => {
+            const add = mode.checked ? item.angles[i] : globalAngle;
+            page.setRotation(degrees(norm(page.getRotation().angle + add)));
+          });
+        }
+
+        async function drawPage(page, canvas, scale) {
+          const viewport = page.getViewport({ scale });
+          const ratio = window.devicePixelRatio || 1;
+          const ctx = canvas.getContext("2d");
+          canvas.width = Math.floor(viewport.width * ratio);
+          canvas.height = Math.floor(viewport.height * ratio);
+          canvas.style.width = `${viewport.width}px`;
+          canvas.style.height = `${viewport.height}px`;
+          await page.render({
+            canvasContext: ctx,
+            viewport,
+            transform: ratio !== 1 ? [ratio, 0, 0, ratio, 0, 0] : null,
+          }).promise;
+        }
+
+        function updateMode() {
+          globalView.classList.toggle("hidden", mode.checked);
+          pagesBox.classList.toggle("visible", mode.checked);
+          if (!mode.checked) pagesBox.replaceChildren();
+        }
+        function updateUI() {
+          const has = items.length > 0;
+          left.disabled = !has || mode.checked || busy;
+          right.disabled = !has || mode.checked || busy;
+          savePdf.disabled = items.length !== 1 || busy;
+          saveZip.disabled = !has || busy;
+          mode.disabled = !has || busy;
+          drop.textContent = has
+            ? `Ընտրված է ${items.length} PDF ֆայլ։`
+            : "Սեղմեք կամ տեղադրեք PDF ֆայլը այստեղ";
+        }
+
+        async function clearWorkspace(resetMode) {
+          for (const item of items) {
+            try {
+              await item.pdf.destroy();
+            } catch (e) {}
+            item.file = null;
+            item.pdf = null;
+            item.angles = [];
+          }
+          items = [];
+          globalAngle = 0;
+          clearCanvas(mainCanvas);
+          globalAngleText.textContent = "0°";
+          pagesBox.replaceChildren();
+          input.value = "";
+          if (resetMode) mode.checked = false;
+          updateMode();
+          updateUI();
+          setStatus("", "");
+        }
+        function clearCanvas(canvas) {
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          canvas.width = 0;
+          canvas.height = 0;
+        }
+        function norm(a) {
+          return ((a % 360) + 360) % 360;
+        }
+        function rotatedName(name) {
+          return name.toLowerCase().endsWith(".pdf")
+            ? `${name.slice(0, -4)}_rotated.pdf`
+            : `${name}_rotated.pdf`;
+        }
+        function download(blob, name) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = name;
+          document.body.append(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(url), 1500);
+        }
+        function setStatus(text, type) {
+          status.textContent = text;
+          status.className = type || "";
+        }
+        function showBusy(title, msg) {
+          popup.className = "popup visible";
+          popupIcon.textContent = "";
+          popupTitle.textContent = title;
+          popupMessage.textContent = msg;
+        }
+        function showDone(title, msg) {
+          popup.className = "popup visible success";
+          popupIcon.textContent = "✓";
+          popupTitle.textContent = title;
+          popupMessage.textContent = msg;
+        }
+        function showError(title, msg) {
+          popup.className = "popup visible error";
+          popupIcon.textContent = "✕";
+          popupTitle.textContent = title;
+          popupMessage.textContent = msg;
+        }
+        updateMode();
+        updateUI();
+      });
+    </script>
+  </body>
 </html>
