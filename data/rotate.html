@@ -232,14 +232,21 @@
       }
 
       .page-preview {
-        width: 230px;
-        min-height: 160px;
+        width: 200px;
+        height: 260px;
         display: flex;
         justify-content: center;
         align-items: center;
         overflow: hidden;
         border-radius: 8px;
         background: #020617;
+      }
+
+      .page-preview canvas {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto !important;
+        height: auto !important;
       }
 
       .page-info {
@@ -462,6 +469,7 @@
         const popupClose = document.getElementById("popup-close");
         let items = [];
         let globalAngle = 0;
+        let globalVisualAngle = 0;
         let busy = false;
 
         drop.onclick = () => {
@@ -512,9 +520,11 @@
                 file,
                 pdf,
                 angles: new Array(pdf.numPages).fill(0),
+                visualAngles: new Array(pdf.numPages).fill(0),
               });
             }
             globalAngle = 0;
+            globalVisualAngle = 0;
             globalAngleText.textContent = "0°";
             mainCanvas.style.transform = "rotate(0deg)";
             await renderMain();
@@ -562,14 +572,19 @@
           card.className = "page-card";
           card.innerHTML = `<div class="page-preview"><canvas></canvas></div><div class="page-info"><div class="page-number">Էջ ${pi + 1}</div><div class="page-angle"></div><div class="page-controls"><button class="page-left">⟲ Ձախ</button><button class="page-right">⟳ Աջ</button><button class="page-reset">Չեղարկել</button></div></div>`;
           card.querySelector(".page-left").onclick = () => {
-            items[fi].angles[pi] = norm(items[fi].angles[pi] - 90);
+            items[fi].visualAngles[pi] -= 90;
+            items[fi].angles[pi] = norm(items[fi].visualAngles[pi]);
             refreshCard(fi, pi, card);
           };
+
           card.querySelector(".page-right").onclick = () => {
-            items[fi].angles[pi] = norm(items[fi].angles[pi] + 90);
+            items[fi].visualAngles[pi] += 90;
+            items[fi].angles[pi] = norm(items[fi].visualAngles[pi]);
             refreshCard(fi, pi, card);
           };
+
           card.querySelector(".page-reset").onclick = () => {
+            items[fi].visualAngles[pi] = 0;
             items[fi].angles[pi] = 0;
             refreshCard(fi, pi, card);
           };
@@ -577,13 +592,21 @@
         }
 
         function refreshCard(fi, pi, card) {
-          const a = items[fi].angles[pi];
-          card.querySelector("canvas").style.transform = `rotate(${a}deg)`;
-          card.querySelector(".page-angle").textContent = `Անկյուն: ${a}°`;
+          const logicalAngle = items[fi].angles[pi];
+          const visualAngle = items[fi].visualAngles[pi];
+
+          card.querySelector("canvas").style.transform =
+            `rotate(${visualAngle}deg)`;
+
+          card.querySelector(".page-angle").textContent =
+            `Անկյուն: ${logicalAngle}°`;
         }
         function rotateAll(delta) {
-          globalAngle = norm(globalAngle + delta);
-          mainCanvas.style.transform = `rotate(${globalAngle}deg)`;
+          globalVisualAngle += delta;
+          globalAngle = norm(globalVisualAngle);
+
+          mainCanvas.style.transform = `rotate(${globalVisualAngle}deg)`;
+
           globalAngleText.textContent = `${globalAngle}°`;
         }
 
@@ -682,9 +705,11 @@
             item.file = null;
             item.pdf = null;
             item.angles = [];
+            item.visualAngles = [];
           }
           items = [];
           globalAngle = 0;
+          globalVisualAngle = 0;
           clearCanvas(mainCanvas);
           globalAngleText.textContent = "0°";
           pagesBox.replaceChildren();
