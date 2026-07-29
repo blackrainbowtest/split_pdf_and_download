@@ -1,0 +1,804 @@
+<!doctype html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Գումարը տառերով</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "GHEA Grapalat", "Noto Sans Armenian", Arial, sans-serif;
+    }
+
+    :root {
+      --bg: #0b1220;
+      --panel: rgba(15, 23, 42, 0.9);
+      --panel-dark: rgba(2, 6, 23, 0.72);
+      --border: rgba(148, 163, 184, 0.24);
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --green: #10b981;
+      --green-light: #86efac;
+      --red: #fca5a5;
+      --blue: #3b82f6;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    #root {
+      min-height: 100vh;
+      padding: 90px 24px 40px;
+      background-image:
+        linear-gradient(180deg, rgba(8, 12, 20, 0.9), rgba(2, 6, 12, 0.96)),
+        url("./logo_bg.png");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: cover;
+      background-attachment: fixed;
+    }
+
+    .layout {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(10px);
+    }
+
+    .converter {
+      padding: 32px;
+    }
+
+    .title {
+      margin-bottom: 8px;
+      font-size: clamp(27px, 4vw, 40px);
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin-bottom: 28px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .input-label,
+    .result-label {
+      display: block;
+      margin-bottom: 9px;
+      color: #dbeafe;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+    }
+
+    #number-input {
+      width: 100%;
+      min-height: 54px;
+      padding: 12px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: 10px;
+      outline: none;
+      color: var(--text);
+      background: var(--panel-dark);
+      font-size: 18px;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    #number-input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+    }
+
+    button {
+      border: 0;
+      border-radius: 10px;
+      color: white;
+      cursor: pointer;
+      transition: filter 0.18s ease, transform 0.18s ease;
+    }
+
+    button:hover {
+      filter: brightness(1.08);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    #convert-btn {
+      min-height: 54px;
+      padding: 12px 22px;
+      background: var(--green);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    #message {
+      min-height: 24px;
+      margin: 11px 0 13px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    #message.error {
+      color: var(--red);
+    }
+
+    #message.success {
+      color: var(--green-light);
+    }
+
+    .result-wrap {
+      margin-top: 8px;
+    }
+
+    .result-box {
+      min-height: 118px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 48px;
+      gap: 12px;
+      align-items: start;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--panel-dark);
+    }
+
+    #result {
+      min-width: 0;
+      color: #f8fafc;
+      font-size: clamp(18px, 2.5vw, 23px);
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    #result.empty {
+      color: #64748b;
+    }
+
+    #copy-btn {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      background: rgba(16, 185, 129, 0.16);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      font-size: 21px;
+    }
+
+    #copy-btn:disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+    }
+
+    .history {
+      position: sticky;
+      top: 24px;
+      padding: 22px;
+    }
+
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .history-title {
+      font-size: 21px;
+    }
+
+    #clear-history {
+      padding: 8px 10px;
+      color: #cbd5e1;
+      background: rgba(71, 85, 105, 0.55);
+      font-size: 13px;
+    }
+
+    #history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .history-item {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      border-radius: 10px;
+      color: #e2e8f0;
+      background: rgba(2, 6, 23, 0.58);
+      text-align: left;
+      font-size: 16px;
+      overflow-wrap: anywhere;
+    }
+
+    .history-item:hover {
+      border-color: rgba(52, 211, 153, 0.52);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .history-empty {
+      padding: 18px 8px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .back-btn {
+      position: fixed;
+      top: 24px;
+      left: 24px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.06);
+      text-decoration: none;
+      backdrop-filter: blur(8px);
+    }
+
+    @media (max-width: 820px) {
+      #root {
+        padding-top: 82px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .history {
+        position: static;
+      }
+    }
+
+    @media (max-width: 590px) {
+      #root {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .converter {
+        padding: 22px 17px;
+      }
+
+      .input-row {
+        grid-template-columns: 1fr;
+      }
+
+      #convert-btn {
+        width: 100%;
+      }
+
+      .back-btn {
+        top: 15px;
+        left: 15px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root">
+    <a href="../index.html" class="back-btn">
+      <span>←</span>
+      <span>Գլխավոր էջ</span>
+    </a>
+
+    <main class="layout">
+      <section class="card converter">
+        <h1 class="title">Գումարը տառերով</h1>
+        <p class="subtitle">
+          Մուտքագրեք դրական թիվը։ Օրինակ՝ 16,500.01
+        </p>
+
+        <label class="input-label" for="number-input">Գումար</label>
+
+        <div class="input-row">
+          <input
+            id="number-input"
+            type="text"
+            inputmode="decimal"
+            autocomplete="off"
+            placeholder="16,500.01"
+            aria-describedby="message"
+          />
+          <button id="convert-btn" type="button">Փոխակերպել</button>
+        </div>
+
+        <div id="message" aria-live="polite"></div>
+
+        <div class="result-wrap">
+          <span class="result-label">Արդյունք</span>
+
+          <div class="result-box">
+            <div id="result" class="empty" aria-live="polite">
+              Արդյունքը կհայտնվի այստեղ
+            </div>
+
+            <button
+              id="copy-btn"
+              type="button"
+              title="Պատճենել"
+              aria-label="Պատճենել արդյունքը"
+              disabled
+            >
+              📋
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card history">
+        <div class="history-header">
+          <h2 class="history-title">Պատմություն</h2>
+          <button id="clear-history" type="button">Մաքրել</button>
+        </div>
+
+        <div id="history-list"></div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const DIGITS = [
+        "",
+        "մեկ",
+        "երկու",
+        "երեք",
+        "չորս",
+        "հինգ",
+        "վեց",
+        "յոթ",
+        "ութ",
+        "ինը",
+      ];
+
+      const TEN_TO_NINETEEN = [
+        "տաս",
+        "տասնմեկ",
+        "տասներկու",
+        "տասներեք",
+        "տասնչորս",
+        "տասնհինգ",
+        "տասնվեց",
+        "տասնյոթ",
+        "տասնութ",
+        "տասնինը",
+      ];
+
+      const TENS = [
+        "",
+        "",
+        "քսան",
+        "երեսուն",
+        "քառասուն",
+        "հիսուն",
+        "վաթսուն",
+        "յոթանասուն",
+        "ութսուն",
+        "իննսուն",
+      ];
+
+      const PLACES = ["", "հազար", "միլիոն", "միլիարդ", "տրիլիոն"];
+      const HUNDRED = "հարյուր";
+      const AND = "ամբողջ";
+      const ZERO_MESSAGE = "գումար չի մուտքագրված";
+      const HISTORY_KEY = "armenian-number-history-v1";
+      const HISTORY_LIMIT = 10;
+
+      const input = document.getElementById("number-input");
+      const convertBtn = document.getElementById("convert-btn");
+      const result = document.getElementById("result");
+      const copyBtn = document.getElementById("copy-btn");
+      const message = document.getElementById("message");
+      const historyList = document.getElementById("history-list");
+      const clearHistoryBtn = document.getElementById("clear-history");
+
+      let currentResult = "";
+      let history = loadHistory();
+
+      renderHistory();
+
+      convertBtn.addEventListener("click", convertCurrentInput);
+
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          convertCurrentInput();
+        }
+      });
+
+      copyBtn.addEventListener("click", copyResult);
+
+      clearHistoryBtn.addEventListener("click", () => {
+        history = [];
+        saveHistory();
+        renderHistory();
+        setMessage("Պատմությունը մաքրված է։", "success");
+      });
+
+      function convertCurrentInput() {
+        const rawValue = input.value.trim();
+
+        if (rawValue === "") {
+          showResult(` /${ZERO_MESSAGE}/ `);
+          setMessage("Գումար չի մուտքագրվել։", "error");
+          return;
+        }
+
+        const normalized = normalizeInput(rawValue);
+
+        if (!normalized.ok) {
+          clearResult();
+          setMessage(normalized.error, "error");
+          return;
+        }
+
+        const text = numberToArmenian(normalized.value);
+        showResult(` /${text}/ `);
+        setMessage("Թիվը հաջողությամբ փոխակերպվեց։", "success");
+
+        addToHistory(rawValue);
+      }
+
+      function normalizeInput(rawValue) {
+        let value = rawValue
+          .replace(/\s+/g, "")
+          .replace(/\u00A0/g, "");
+
+        if (value.startsWith("-")) {
+          return {
+            ok: false,
+            error: "Բացասական թվերը չեն ընդունվում։",
+          };
+        }
+
+        if (value.startsWith("+")) {
+          value = value.slice(1);
+        }
+
+        if (!value || !/^[0-9.,]+$/.test(value)) {
+          return {
+            ok: false,
+            error: "Մուտքագրեք միայն դրական թիվ։",
+          };
+        }
+
+        const lastDot = value.lastIndexOf(".");
+        const lastComma = value.lastIndexOf(",");
+        let decimalSeparator = "";
+
+        if (lastDot !== -1 && lastComma !== -1) {
+          decimalSeparator = lastDot > lastComma ? "." : ",";
+        } else if (lastDot !== -1) {
+          decimalSeparator = detectSingleSeparator(value, ".");
+        } else if (lastComma !== -1) {
+          decimalSeparator = detectSingleSeparator(value, ",");
+        }
+
+        let integerPart = value;
+        let decimalPart = "";
+
+        if (decimalSeparator) {
+          const separatorIndex = value.lastIndexOf(decimalSeparator);
+          integerPart = value.slice(0, separatorIndex);
+          decimalPart = value.slice(separatorIndex + 1);
+        }
+
+        integerPart = integerPart.replace(/[.,]/g, "");
+
+        if (decimalPart.includes(".") || decimalPart.includes(",")) {
+          return {
+            ok: false,
+            error: "Թվի ձևաչափը ճիշտ չէ։",
+          };
+        }
+
+        if (integerPart === "") {
+          integerPart = "0";
+        }
+
+        if (!/^\d+$/.test(integerPart) || (decimalPart && !/^\d+$/.test(decimalPart))) {
+          return {
+            ok: false,
+            error: "Թվի ձևաչափը ճիշտ չէ։",
+          };
+        }
+
+        integerPart = integerPart.replace(/^0+(?=\d)/, "");
+
+        if (integerPart.length > 15) {
+          return {
+            ok: false,
+            error: "Թիվը գերազանցում է տրիլիոնների թույլատրելի սահմանը։",
+          };
+        }
+
+        decimalPart = decimalPart.slice(0, 2);
+
+        return {
+          ok: true,
+          value: decimalPart ? `${integerPart}.${decimalPart}` : integerPart,
+        };
+      }
+
+      function detectSingleSeparator(value, separator) {
+        const pieces = value.split(separator);
+
+        if (pieces.length === 2) {
+          const digitsAfter = pieces[1].length;
+
+          /*
+           * One or two digits after a single separator are treated
+           * as the decimal part. Three digits are treated as a
+           * thousands group, matching formats such as 16,500.
+           */
+          if (digitsAfter >= 1 && digitsAfter <= 2) {
+            return separator;
+          }
+
+          return "";
+        }
+
+        /*
+         * Several identical separators are interpreted as group
+         * separators, except when the final group has 1-2 digits.
+         */
+        const lastGroupLength = pieces[pieces.length - 1].length;
+
+        if (lastGroupLength >= 1 && lastGroupLength <= 2) {
+          return separator;
+        }
+
+        return "";
+      }
+
+      function numberToArmenian(normalizedValue) {
+        const [integerPart, rawDecimalPart = ""] = normalizedValue.split(".");
+        let integerText = convertIntegerPart(integerPart);
+
+        if (integerText === "") {
+          integerText = ZERO_MESSAGE;
+        }
+
+        if (rawDecimalPart !== "") {
+          const decimalPart = (rawDecimalPart + "00").slice(0, 2);
+          const decimalText = getTens(decimalPart);
+
+          if (decimalText !== "") {
+            return joinWords(integerText, AND, decimalText);
+          }
+        }
+
+        return integerText;
+      }
+
+      function convertIntegerPart(text) {
+        let remaining = text;
+        let placeIndex = 0;
+        const groups = [];
+
+        while (remaining.length > 0) {
+          const chunk = remaining.slice(-3);
+          const chunkText = getHundreds(chunk);
+
+          if (chunkText !== "") {
+            if (placeIndex >= PLACES.length) {
+              return "";
+            }
+
+            groups.unshift(joinWords(chunkText, PLACES[placeIndex]));
+          }
+
+          remaining = remaining.slice(0, -3);
+          placeIndex += 1;
+        }
+
+        return joinWords(...groups);
+      }
+
+      function getHundreds(text) {
+        const padded = text.padStart(3, "0");
+        const value = Number(padded);
+
+        if (value === 0) {
+          return "";
+        }
+
+        const hundredsDigit = Number(padded[0]);
+        const finalTwoDigits = padded.slice(1);
+        const parts = [];
+
+        if (hundredsDigit !== 0) {
+          parts.push(DIGITS[hundredsDigit], HUNDRED);
+        }
+
+        if (padded[1] !== "0") {
+          parts.push(getTens(finalTwoDigits));
+        } else {
+          parts.push(getDigit(padded[2]));
+        }
+
+        return joinWords(...parts);
+      }
+
+      function getTens(text) {
+        const padded = text.padStart(2, "0").slice(-2);
+        const value = Number(padded);
+
+        if (value >= 10 && value <= 19) {
+          return TEN_TO_NINETEEN[value - 10];
+        }
+
+        const parts = [];
+
+        if (value >= 20) {
+          parts.push(TENS[Number(padded[0])]);
+        }
+
+        parts.push(getDigit(padded[1]));
+        return joinWords(...parts);
+      }
+
+      function getDigit(text) {
+        const value = Number(text);
+        return value === 0 ? "" : DIGITS[value];
+      }
+
+      function joinWords(...parts) {
+        return parts
+          .filter((part) => typeof part === "string" && part.trim() !== "")
+          .map((part) => part.trim())
+          .join(" ");
+      }
+
+      function showResult(text) {
+        currentResult = text;
+        result.textContent = text;
+        result.classList.remove("empty");
+        copyBtn.disabled = false;
+      }
+
+      function clearResult() {
+        currentResult = "";
+        result.textContent = "Արդյունքը կհայտնվի այստեղ";
+        result.classList.add("empty");
+        copyBtn.disabled = true;
+      }
+
+      async function copyResult() {
+        if (!currentResult) {
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(currentResult);
+          copyBtn.textContent = "✓";
+          setMessage("Արդյունքը պատճենված է։", "success");
+
+          setTimeout(() => {
+            copyBtn.textContent = "📋";
+          }, 1200);
+        } catch (error) {
+          fallbackCopy(currentResult);
+        }
+      }
+
+      function fallbackCopy(text) {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.append(area);
+        area.select();
+
+        const copied = document.execCommand("copy");
+        area.remove();
+
+        if (copied) {
+          copyBtn.textContent = "✓";
+          setMessage("Արդյունքը պատճենված է։", "success");
+
+          setTimeout(() => {
+            copyBtn.textContent = "📋";
+          }, 1200);
+        } else {
+          setMessage("Չհաջողվեց պատճենել արդյունքը։", "error");
+        }
+      }
+
+      function addToHistory(rawValue) {
+        const value = rawValue.trim();
+
+        history = history.filter((item) => item !== value);
+        history.unshift(value);
+        history = history.slice(0, HISTORY_LIMIT);
+
+        saveHistory();
+        renderHistory();
+      }
+
+      function renderHistory() {
+        historyList.replaceChildren();
+
+        if (history.length === 0) {
+          const empty = document.createElement("div");
+          empty.className = "history-empty";
+          empty.textContent = "Պատմությունը դեռ դատարկ է։";
+          historyList.append(empty);
+          return;
+        }
+
+        history.forEach((value) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "history-item";
+          button.textContent = value;
+
+          button.addEventListener("click", () => {
+            input.value = value;
+            convertCurrentInput();
+            input.focus();
+          });
+
+          historyList.append(button);
+        });
+      }
+
+      function loadHistory() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(HISTORY_KEY));
+
+          if (!Array.isArray(saved)) {
+            return [];
+          }
+
+          return saved
+            .filter((item) => typeof item === "string")
+            .slice(0, HISTORY_LIMIT);
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function saveHistory() {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+      }
+
+      function setMessage(text, type = "") {
+        message.textContent = text;
+        message.className = type;
+      }
+    });
+  </script>
+</body>
+</html>
