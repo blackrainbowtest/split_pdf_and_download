@@ -29,7 +29,7 @@
       background-position: center;
       background-size: cover;
       background-color: #0b1220;
-      padding: 36px 20px 64px;
+      padding: 76px 20px 64px;
     }
 
 
@@ -52,13 +52,14 @@
     }
 
     .hero-badge {
-      position: relative;
-      z-index: 1;
+      position: fixed;
+      top: 18px;
+      left: 20px;
+      z-index: 10;
       display: inline-flex;
       align-items: center;
       gap: 10px;
       padding: 9px 16px;
-      margin-bottom: 18px;
       border: 1px solid rgba(94, 234, 212, 0.25);
       border-radius: 999px;
       color: #99f6e4;
@@ -205,7 +206,14 @@
     @media (max-width: 560px) {
       #root {
         justify-content: flex-start;
-        padding-top: 28px;
+        padding-top: 76px;
+      }
+
+      .hero-badge {
+        top: 14px;
+        left: 14px;
+        padding: 8px 12px;
+        font-size: 12px;
       }
 
       .hero {
