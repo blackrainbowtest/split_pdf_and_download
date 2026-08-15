@@ -107,7 +107,7 @@
       z-index: 1;
       font-size: clamp(38px, 7vw, 72px);
       line-height: 1.05;
-      letter-spacing: 0.08em;
+      letter-spacing: 0;
       text-transform: uppercase;
       background: linear-gradient(120deg, #7dd3fc, #5eead4, #93c5fd, #c4b5fd, #60a5fa);
       background-size: 300% 300%;
@@ -118,8 +118,18 @@
       text-shadow: 0 16px 42px rgba(96, 165, 250, 0.22);
     }
 
+    .title-text {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.08em;
+      white-space: nowrap;
+    }
+
     .title-letter {
       display: inline-block;
+      min-width: 0.62em;
+      text-align: center;
       transition:
         color 0.25s ease,
         filter 0.25s ease,
@@ -129,6 +139,8 @@
 
     .title-space {
       width: 0.34em;
+      min-width: 0.34em;
+      pointer-events: none;
     }
 
     .title-letter:hover {
@@ -269,7 +281,15 @@
       }
 
       h1 {
-        letter-spacing: 0.04em;
+        letter-spacing: 0;
+      }
+
+      .title-text {
+        gap: 0.04em;
+      }
+
+      .title-letter {
+        min-width: 0.58em;
       }
 
       .hero-subtitle {
@@ -284,8 +304,8 @@
   <div id="root">
     <header class="hero">
       <div class="hero-badge">Offline PDF Tools</div>
-      <h1 aria-label="PDF ԽՄԲԱԳՐԻՉ">
-        <span class="title-letter">P</span><span class="title-letter">D</span><span class="title-letter">F</span><span class="title-letter title-space" aria-hidden="true"></span><span class="title-letter">Խ</span><span class="title-letter">Մ</span><span class="title-letter">Բ</span><span class="title-letter">Ա</span><span class="title-letter">Գ</span><span class="title-letter">Ր</span><span class="title-letter">Ի</span><span class="title-letter">Չ</span>
+      <h1>
+        <span class="title-text" aria-label="PDF ԽՄԲԱԳՐԻՉ"><span class="title-letter">P</span><span class="title-letter">D</span><span class="title-letter">F</span><span class="title-letter title-space" aria-hidden="true"></span><span class="title-letter">Խ</span><span class="title-letter">Մ</span><span class="title-letter">Բ</span><span class="title-letter">Ա</span><span class="title-letter">Գ</span><span class="title-letter">Ր</span><span class="title-letter">Ի</span><span class="title-letter">Չ</span></span>
       </h1>
       <p class="hero-subtitle">Արագ և պարզ գործիքներ PDF ֆայլերի միացման, բաժանման, պտտման և խմբագրման համար</p>
     </header>
