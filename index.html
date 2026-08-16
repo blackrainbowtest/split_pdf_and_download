@@ -264,6 +264,36 @@
       pointer-events: none;
     }
 
+    .cursor-trail {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 12px;
+      height: 12px;
+      z-index: 20;
+      border-radius: 50%;
+      background: #5eead4;
+      box-shadow:
+        0 0 12px rgba(94, 234, 212, 0.9),
+        0 0 28px rgba(96, 165, 250, 0.6),
+        0 0 44px rgba(167, 139, 250, 0.4);
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(1);
+      animation: comet-trail 0.8s ease-out forwards;
+    }
+
+    @keyframes comet-trail {
+      0% {
+        opacity: 0.95;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.12);
+      }
+    }
+
     @media (max-width: 560px) {
       #root {
         justify-content: flex-start;
@@ -348,6 +378,31 @@
     <div class="note">Offline PDF tools • 2025 - 2026</div>
   </div>
 
+  <script>
+    const trailColors = ["#5eead4", "#60a5fa", "#a78bfa"];
+    let lastTrailTime = 0;
+    let trailIndex = 0;
+
+    document.addEventListener("mousemove", (event) => {
+      const now = Date.now();
+
+      if (now - lastTrailTime < 22) {
+        return;
+      }
+
+      lastTrailTime = now;
+
+      const dot = document.createElement("span");
+      dot.className = "cursor-trail";
+      dot.style.left = `${event.clientX}px`;
+      dot.style.top = `${event.clientY}px`;
+      dot.style.background = trailColors[trailIndex % trailColors.length];
+      trailIndex += 1;
+
+      document.body.appendChild(dot);
+      dot.addEventListener("animationend", () => dot.remove());
+    });
+  </script>
 </body>
 
 </html>
