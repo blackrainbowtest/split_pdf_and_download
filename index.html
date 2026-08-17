@@ -299,6 +299,24 @@
       animation: cursor-spray 0.7s ease-out forwards;
     }
 
+    .letter-spray {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 5px;
+      height: 5px;
+      z-index: 18;
+      border-radius: 50%;
+      background: #f0fdfa;
+      box-shadow:
+        0 0 10px rgba(240, 253, 250, 0.95),
+        0 0 22px rgba(94, 234, 212, 0.7),
+        0 0 34px rgba(167, 139, 250, 0.45);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: letter-spray 0.85s ease-out forwards;
+    }
+
     @keyframes comet-trail {
       0% {
         opacity: 1;
@@ -320,6 +338,18 @@
       100% {
         opacity: 0;
         transform: translate(calc(-50% + var(--spray-x)), calc(-50% + var(--spray-y))) scale(0.18);
+      }
+    }
+
+    @keyframes letter-spray {
+      0% {
+        opacity: 0.95;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--atom-x)), calc(-50% + var(--atom-y))) scale(0.15);
       }
     }
 
@@ -411,6 +441,7 @@
     const trailColors = ["#5eead4", "#60a5fa", "#a78bfa", "#93c5fd"];
     let lastTrailTime = 0;
     let trailIndex = 0;
+    let lastLetterSprayTime = 0;
 
     document.addEventListener("mousemove", (event) => {
       const now = Date.now();
@@ -446,6 +477,42 @@
         document.body.appendChild(spray);
         spray.addEventListener("animationend", () => spray.remove());
       }
+    });
+
+    function createLetterSpray(letter) {
+      const rect = letter.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      for (let i = 0; i < 3; i += 1) {
+        const atom = document.createElement("span");
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 14 + Math.random() * 34;
+
+        atom.className = "letter-spray";
+        atom.style.left = `${centerX}px`;
+        atom.style.top = `${centerY}px`;
+        atom.style.background = trailColors[(trailIndex + i) % trailColors.length];
+        atom.style.setProperty("--atom-x", `${Math.cos(angle) * distance}px`);
+        atom.style.setProperty("--atom-y", `${Math.sin(angle) * distance}px`);
+
+        document.body.appendChild(atom);
+        atom.addEventListener("animationend", () => atom.remove());
+      }
+    }
+
+    document.querySelectorAll(".title-letter:not(.title-space)").forEach((letter) => {
+      letter.addEventListener("mouseenter", () => createLetterSpray(letter));
+      letter.addEventListener("mousemove", () => {
+        const now = Date.now();
+
+        if (now - lastLetterSprayTime < 70) {
+          return;
+        }
+
+        lastLetterSprayTime = now;
+        createLetterSpray(letter);
+      });
     });
   </script>
 </body>
