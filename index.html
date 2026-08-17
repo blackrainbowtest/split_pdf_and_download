@@ -268,29 +268,58 @@
       position: fixed;
       left: 0;
       top: 0;
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
       z-index: 20;
       border-radius: 50%;
       background: #5eead4;
       box-shadow:
-        0 0 12px rgba(94, 234, 212, 0.9),
-        0 0 28px rgba(96, 165, 250, 0.6),
-        0 0 44px rgba(167, 139, 250, 0.4);
+        0 0 16px rgba(94, 234, 212, 1),
+        0 0 34px rgba(96, 165, 250, 0.78),
+        0 0 58px rgba(167, 139, 250, 0.55);
       pointer-events: none;
       transform: translate(-50%, -50%) scale(1);
-      animation: comet-trail 0.8s ease-out forwards;
+      animation: comet-trail 0.95s ease-out forwards;
+    }
+
+    .cursor-spray {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 4px;
+      z-index: 19;
+      border-radius: 50%;
+      background: #93c5fd;
+      box-shadow:
+        0 0 8px rgba(147, 197, 253, 0.9),
+        0 0 18px rgba(94, 234, 212, 0.45);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: cursor-spray 0.7s ease-out forwards;
     }
 
     @keyframes comet-trail {
       0% {
-        opacity: 0.95;
+        opacity: 1;
         transform: translate(-50%, -50%) scale(1);
       }
 
       100% {
         opacity: 0;
         transform: translate(-50%, -50%) scale(0.12);
+      }
+    }
+
+    @keyframes cursor-spray {
+      0% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--spray-x)), calc(-50% + var(--spray-y))) scale(0.18);
       }
     }
 
@@ -379,7 +408,7 @@
   </div>
 
   <script>
-    const trailColors = ["#5eead4", "#60a5fa", "#a78bfa"];
+    const trailColors = ["#5eead4", "#60a5fa", "#a78bfa", "#93c5fd"];
     let lastTrailTime = 0;
     let trailIndex = 0;
 
@@ -401,6 +430,22 @@
 
       document.body.appendChild(dot);
       dot.addEventListener("animationend", () => dot.remove());
+
+      for (let i = 0; i < 3; i += 1) {
+        const spray = document.createElement("span");
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 8 + Math.random() * 22;
+
+        spray.className = "cursor-spray";
+        spray.style.left = `${event.clientX}px`;
+        spray.style.top = `${event.clientY}px`;
+        spray.style.background = trailColors[(trailIndex + i) % trailColors.length];
+        spray.style.setProperty("--spray-x", `${Math.cos(angle) * distance}px`);
+        spray.style.setProperty("--spray-y", `${Math.sin(angle) * distance}px`);
+
+        document.body.appendChild(spray);
+        spray.addEventListener("animationend", () => spray.remove());
+      }
     });
   </script>
 </body>
