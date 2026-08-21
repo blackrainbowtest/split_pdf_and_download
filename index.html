@@ -181,19 +181,79 @@
       }
     }
 
-    /* ===== GRID ===== */
+    /* ===== CAROUSEL ===== */
+    .carousel {
+      position: relative;
+      width: min(980px, 100%);
+      margin: 0 auto;
+      padding: 0 58px;
+    }
+
     .menu {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      display: flex;
       gap: 28px;
-      max-width: 820px;
       width: 100%;
       margin: 0 auto;
+      overflow-x: auto;
+      overflow-y: visible;
+      padding: 12px 4px 24px;
+      scroll-behavior: smooth;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .menu::-webkit-scrollbar {
+      display: none;
+    }
+
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      z-index: 6;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(94, 234, 212, 0.28);
+      border-radius: 50%;
+      color: #99f6e4;
+      background: rgba(15, 23, 42, 0.78);
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+      cursor: pointer;
+      transform: translateY(-50%);
+      transition:
+        color 0.25s ease,
+        border-color 0.25s ease,
+        background-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.25s ease;
+    }
+
+    .carousel-btn:hover {
+      color: #ffffff;
+      border-color: rgba(94, 234, 212, 0.7);
+      background: rgba(15, 23, 42, 0.94);
+      box-shadow:
+        0 0 24px rgba(94, 234, 212, 0.38),
+        0 18px 34px rgba(0, 0, 0, 0.42);
+    }
+
+    .carousel-btn:active {
+      transform: translateY(-50%) scale(0.94);
+    }
+
+    .carousel-btn.prev {
+      left: 0;
+    }
+
+    .carousel-btn.next {
+      right: 0;
     }
 
     /* ===== CARD BUTTON ===== */
     .card {
       position: relative;
+      flex: 0 0 260px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -208,6 +268,7 @@
       border: 1px solid rgba(255, 255, 255, 0.08);
       backdrop-filter: blur(6px);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      scroll-snap-align: center;
       transition:
         transform 0.35s ease,
         box-shadow 0.35s ease,
@@ -378,6 +439,15 @@
         margin-bottom: 28px;
       }
 
+      .carousel {
+        padding: 0 44px;
+      }
+
+      .carousel-btn {
+        width: 36px;
+        height: 36px;
+      }
+
       h1 {
         letter-spacing: 0;
       }
@@ -391,6 +461,7 @@
       }
 
       .card {
+        flex-basis: 238px;
         height: 188px;
         padding: 30px 24px;
       }
@@ -413,38 +484,42 @@
       <p class="hero-subtitle">Արագ և պարզ գործիքներ PDF ֆայլերի միացման, բաժանման, պտտման և խմբագրման համար</p>
     </header>
 
-    <div class="menu">
-      <a href="data/merge.html" class="card">
-        <div class="card-title">Միացնել PDF</div>
-        <div class="card-desc">
-          Միացրեք մի քանի PDF ֆայլ մեկ փաստաթղթի մեջ
-        </div>
-      </a>
+    <div class="carousel">
+      <button class="carousel-btn prev" type="button" aria-label="Նախորդ գործիք">‹</button>
+      <div class="menu" id="tools-carousel">
+        <a href="data/merge.html" class="card">
+          <div class="card-title">Միացնել PDF</div>
+          <div class="card-desc">
+            Միացրեք մի քանի PDF ֆայլ մեկ փաստաթղթի մեջ
+          </div>
+        </a>
 
-      <a href="data/split.html" class="card">
-        <div class="card-title">Բաժանել PDF</div>
-        <div class="card-desc">Տարանջատեք PDF-ը մասերի ըստ էջերի</div>
-      </a>
+        <a href="data/split.html" class="card">
+          <div class="card-title">Բաժանել PDF</div>
+          <div class="card-desc">Տարանջատեք PDF-ը մասերի ըստ էջերի</div>
+        </a>
 
-      <a href="data/rotate.html" class="card">
-        <div class="card-title">Պտտել PDF</div>
-        <div class="card-desc">Պտտեք էջերը 90° / 180° / 270°</div>
-      </a>
+        <a href="data/rotate.html" class="card">
+          <div class="card-title">Պտտել PDF</div>
+          <div class="card-desc">Պտտեք էջերը 90° / 180° / 270°</div>
+        </a>
 
-      <a href="data/pdf_to_word.html" class="card">
-        <div class="card-title">Վերափոխել PDF-ը WORD</div>
-        <div class="card-desc">Չի աշխատում սքաների հետ</div>
-      </a>
+        <a href="data/pdf_to_word.html" class="card">
+          <div class="card-title">Վերափոխել PDF-ը WORD</div>
+          <div class="card-desc">Չի աշխատում սքաների հետ</div>
+        </a>
 
-      <a href="data/cap_cat_pdf.html" class="card">
-        <div class="card-title">Խմբագրել PDF էջերը</div>
-        <div class="card-desc">Հեռացրեք դատարկ էջերը մեկ քլիկով</div>
-      </a>
+        <a href="data/cap_cat_pdf.html" class="card">
+          <div class="card-title">Խմբագրել PDF էջերը</div>
+          <div class="card-desc">Հեռացրեք դատարկ էջերը մեկ քլիկով</div>
+        </a>
 
-      <a href="data/number_to_letter.html" class="card">
-        <div class="card-title">Ձևափոխեք թվերը տառերի</div>
-        <div class="card-desc">Ստացեք թվային արժեքի տեքստային արտահայտությունը մեկ քլիկով</div>
-      </a>
+        <a href="data/number_to_letter.html" class="card">
+          <div class="card-title">Ձևափոխեք թվերը տառերի</div>
+          <div class="card-desc">Ստացեք թվային արժեքի տեքստային արտահայտությունը մեկ քլիկով</div>
+        </a>
+      </div>
+      <button class="carousel-btn next" type="button" aria-label="Հաջորդ գործիք">›</button>
     </div>
 
     <div class="note">Offline PDF tools • 2025 - 2026</div>
