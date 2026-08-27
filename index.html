@@ -614,6 +614,26 @@
       const card = carousel.querySelector(".card");
       const gap = 28;
       const distance = card.offsetWidth + gap;
+      const maxScroll = carousel.scrollWidth - carousel.clientWidth;
+      const edgeOffset = 8;
+
+      if (direction > 0 && carousel.scrollLeft >= maxScroll - edgeOffset) {
+        carousel.scrollTo({
+          left: 0,
+          behavior: "smooth",
+        });
+
+        return;
+      }
+
+      if (direction < 0 && carousel.scrollLeft <= edgeOffset) {
+        carousel.scrollTo({
+          left: maxScroll,
+          behavior: "smooth",
+        });
+
+        return;
+      }
 
       carousel.scrollBy({
         left: direction * distance,
