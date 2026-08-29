@@ -609,8 +609,8 @@
     const carousel = document.getElementById("tools-carousel");
     const prevButton = document.querySelector(".carousel-btn.prev");
     const nextButton = document.querySelector(".carousel-btn.next");
-    const cloneCount = 3;
     let realCards = Array.from(carousel.querySelectorAll(".card"));
+    const cloneCount = realCards.length;
     let cardStep = 0;
     let isLooping = false;
 
@@ -626,14 +626,14 @@
       const firstClones = realCards.slice(0, cloneCount).map((card) => {
         const clone = card.cloneNode(true);
         clone.setAttribute("aria-hidden", "true");
-        clone.tabIndex = -1;
+        clone.setAttribute("tabindex", "-1");
         return clone;
       });
 
       const lastClones = realCards.slice(-cloneCount).map((card) => {
         const clone = card.cloneNode(true);
         clone.setAttribute("aria-hidden", "true");
-        clone.tabIndex = -1;
+        clone.setAttribute("tabindex", "-1");
         return clone;
       });
 
@@ -661,20 +661,19 @@
         return;
       }
 
-      const firstReal = cardStep * cloneCount;
-      const lastReal = cardStep * (cloneCount + realCards.length - 1);
-      const firstCloneAfterEnd = cardStep * (cloneCount + realCards.length);
-      const beforeFirstReal = cardStep * (cloneCount - 1);
-      const edgeOffset = 4;
+      const realTrackWidth = cardStep * realCards.length;
+      const realStart = cardStep * cloneCount;
+      const realEnd = realStart + realTrackWidth;
+      const edgeOffset = cardStep / 2;
 
-      if (carousel.scrollLeft >= firstCloneAfterEnd - edgeOffset) {
+      if (carousel.scrollLeft >= realEnd - edgeOffset) {
         isLooping = true;
-        jumpWithoutAnimation(firstReal);
+        jumpWithoutAnimation(carousel.scrollLeft - realTrackWidth);
       }
 
-      if (carousel.scrollLeft <= beforeFirstReal + edgeOffset) {
+      if (carousel.scrollLeft <= realStart - edgeOffset) {
         isLooping = true;
-        jumpWithoutAnimation(lastReal);
+        jumpWithoutAnimation(carousel.scrollLeft + realTrackWidth);
       }
     }
 
