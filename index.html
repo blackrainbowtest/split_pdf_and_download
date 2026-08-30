@@ -200,6 +200,15 @@
       scroll-behavior: smooth;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
+      cursor: grab;
+      user-select: none;
+      touch-action: pan-y;
+    }
+
+    .menu.dragging {
+      cursor: grabbing;
+      scroll-behavior: auto;
+      scroll-snap-type: none;
     }
 
     .menu::-webkit-scrollbar {
@@ -275,6 +284,8 @@
         transform 0.35s ease,
         box-shadow 0.35s ease,
         border-color 0.35s ease;
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
     /* glow layer */
@@ -613,6 +624,10 @@
     const cloneCount = realCards.length;
     let cardStep = 0;
     let isLooping = false;
+    let isDraggingCarousel = false;
+    let didDragCarousel = false;
+    let dragStartX = 0;
+    let dragStartScrollLeft = 0;
 
     function getCardStep() {
       const card = carousel.querySelector(".card");
@@ -685,6 +700,61 @@
         behavior: "smooth",
       });
     }
+
+    carousel.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0) {
+        return;
+      }
+
+      isDraggingCarousel = true;
+      didDragCarousel = false;
+      dragStartX = event.clientX;
+      dragStartScrollLeft = carousel.scrollLeft;
+      carousel.classList.add("dragging");
+      carousel.setPointerCapture(event.pointerId);
+    });
+
+    carousel.addEventListener("pointermove", (event) => {
+      if (!isDraggingCarousel) {
+        return;
+      }
+
+      const dragDistance = event.clientX - dragStartX;
+
+      if (Math.abs(dragDistance) > 5) {
+        didDragCarousel = true;
+      }
+
+      carousel.scrollLeft = dragStartScrollLeft - dragDistance;
+      normalizeInfiniteCarousel();
+    });
+
+    function stopCarouselDrag(event) {
+      if (!isDraggingCarousel) {
+        return;
+      }
+
+      isDraggingCarousel = false;
+      carousel.classList.remove("dragging");
+
+      if (carousel.hasPointerCapture(event.pointerId)) {
+        carousel.releasePointerCapture(event.pointerId);
+      }
+
+      window.setTimeout(normalizeInfiniteCarousel, 80);
+    }
+
+    carousel.addEventListener("pointerup", stopCarouselDrag);
+    carousel.addEventListener("pointercancel", stopCarouselDrag);
+    carousel.addEventListener("click", (event) => {
+      if (!didDragCarousel) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      didDragCarousel = false;
+    }, true);
 
     setupInfiniteCarousel();
     carousel.addEventListener("scroll", () => {
