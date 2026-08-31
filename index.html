@@ -317,19 +317,49 @@
 
     /* ===== CARD CONTENT ===== */
     .card-title {
+      position: absolute;
+      inset: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       font-size: 22px;
       font-weight: 600;
-      margin-bottom: 10px;
+      opacity: 1;
+      transform: translateY(0);
+      transition:
+        opacity 0.28s ease,
+        transform 0.28s ease;
     }
 
     .card-desc {
+      position: absolute;
+      inset: 28px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
       font-size: 15px;
-      opacity: 0.8;
+      opacity: 0;
       line-height: 1.5;
       display: -webkit-box;
       overflow: hidden;
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 3;
+      transform: translateY(8px);
+      transition:
+        opacity 0.3s ease 0.4s,
+        transform 0.3s ease 0.4s;
+    }
+
+    .card:hover .card-title {
+      opacity: 0;
+      transform: translateY(-8px);
+      transition-delay: 0s;
+    }
+
+    .card:hover .card-desc {
+      opacity: 0.86;
+      transform: translateY(0);
     }
 
     /* ===== FOOTER NOTE ===== */
