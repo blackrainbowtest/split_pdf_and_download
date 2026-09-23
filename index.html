@@ -260,6 +260,43 @@
       right: 0;
     }
 
+    .carousel-dots {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .carousel-dot {
+      width: 9px;
+      height: 9px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(148, 163, 184, 0.34);
+      box-shadow: none;
+      cursor: pointer;
+      padding: 0;
+      transition:
+        transform 0.25s ease,
+        background-color 0.25s ease,
+        box-shadow 0.25s ease,
+        opacity 0.25s ease;
+    }
+
+    .carousel-dot.active {
+      background: #5eead4;
+      box-shadow:
+        0 0 10px rgba(94, 234, 212, 0.9),
+        0 0 24px rgba(96, 165, 250, 0.55);
+      transform: scale(1.35);
+    }
+
+    .carousel-dot:hover {
+      background: #99f6e4;
+      transform: scale(1.25);
+    }
+
     /* ===== CARD BUTTON ===== */
     .card {
       position: relative;
@@ -564,6 +601,7 @@
         </a>
       </div>
       <button class="carousel-btn next" type="button" aria-label="Հաջորդ գործիք">›</button>
+      <div class="carousel-dots" id="carousel-dots" aria-label="Տեսանելի գործիքներ"></div>
     </div>
 
     <div class="note">Offline PDF tools • 2025 - 2026</div>
@@ -648,6 +686,7 @@
     });
 
     const carousel = document.getElementById("tools-carousel");
+    const dotsContainer = document.getElementById("carousel-dots");
     const prevButton = document.querySelector(".carousel-btn.prev");
     const nextButton = document.querySelector(".carousel-btn.next");
     let realCards = Array.from(carousel.querySelectorAll(".card"));
@@ -658,6 +697,7 @@
     let didDragCarousel = false;
     let dragStartX = 0;
     let dragStartScrollLeft = 0;
+    let dots = [];
 
     function getCardStep() {
       const card = carousel.querySelector(".card");
@@ -668,6 +708,16 @@
     }
 
     function setupInfiniteCarousel() {
+      dots = realCards.map((card, index) => {
+        const dot = document.createElement("button");
+        dot.className = "carousel-dot";
+        dot.type = "button";
+        dot.setAttribute("aria-label", card.querySelector(".card-title").textContent.trim());
+        dot.addEventListener("click", () => scrollToRealCard(index));
+        dotsContainer.appendChild(dot);
+        return dot;
+      });
+
       const firstClones = realCards.slice(0, cloneCount).map((card) => {
         const clone = card.cloneNode(true);
         clone.setAttribute("aria-hidden", "true");
@@ -688,6 +738,7 @@
       requestAnimationFrame(() => {
         cardStep = getCardStep();
         carousel.scrollLeft = cardStep * cloneCount;
+        updateCarouselDots();
       });
     }
 
@@ -720,6 +771,39 @@
         isLooping = true;
         jumpWithoutAnimation(carousel.scrollLeft + realTrackWidth);
       }
+    }
+
+    function getLoopedRealIndex(card) {
+      const allCards = Array.from(carousel.querySelectorAll(".card"));
+      const itemIndex = allCards.indexOf(card);
+      return ((itemIndex - cloneCount) % realCards.length + realCards.length) % realCards.length;
+    }
+
+    function updateCarouselDots() {
+      const carouselRect = carousel.getBoundingClientRect();
+      const visibleIndexes = new Set();
+
+      Array.from(carousel.querySelectorAll(".card")).forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const visibleWidth = Math.min(rect.right, carouselRect.right) - Math.max(rect.left, carouselRect.left);
+
+        if (visibleWidth > rect.width * 0.45) {
+          visibleIndexes.add(getLoopedRealIndex(card));
+        }
+      });
+
+      dots.forEach((dot, index) => {
+        dot.classList.toggle("active", visibleIndexes.has(index));
+      });
+    }
+
+    function scrollToRealCard(index) {
+      cardStep = getCardStep();
+
+      carousel.scrollTo({
+        left: cardStep * (cloneCount + index),
+        behavior: "smooth",
+      });
     }
 
     function scrollCarousel(direction) {
@@ -789,11 +873,16 @@
     setupInfiniteCarousel();
     carousel.addEventListener("scroll", () => {
       window.clearTimeout(carousel.scrollTimer);
-      carousel.scrollTimer = window.setTimeout(normalizeInfiniteCarousel, 120);
+      carousel.scrollTimer = window.setTimeout(() => {
+        normalizeInfiniteCarousel();
+        updateCarouselDots();
+      }, 120);
+      window.requestAnimationFrame(updateCarouselDots);
     });
     window.addEventListener("resize", () => {
       cardStep = getCardStep();
       jumpWithoutAnimation(cardStep * cloneCount);
+      updateCarouselDots();
     });
     prevButton.addEventListener("click", () => scrollCarousel(-1));
     nextButton.addEventListener("click", () => scrollCarousel(1));
