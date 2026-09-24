@@ -466,6 +466,23 @@
       animation: letter-spray 1s ease-out forwards;
     }
 
+    .dot-spray {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 4px;
+      z-index: 18;
+      border-radius: 50%;
+      background: #5eead4;
+      box-shadow:
+        0 0 8px rgba(94, 234, 212, 1),
+        0 0 18px rgba(96, 165, 250, 0.7);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      animation: dot-spray 0.75s ease-out forwards;
+    }
+
     @keyframes comet-trail {
       0% {
         opacity: 1;
@@ -499,6 +516,18 @@
       100% {
         opacity: 0;
         transform: translate(calc(-50% + var(--atom-x)), calc(-50% + var(--atom-y))) scale(0.15);
+      }
+    }
+
+    @keyframes dot-spray {
+      0% {
+        opacity: 0.9;
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--dot-x)), calc(-50% + var(--dot-y))) scale(0.1);
       }
     }
 
@@ -698,6 +727,7 @@
     let dragStartX = 0;
     let dragStartScrollLeft = 0;
     let dots = [];
+    let activeDotIndexes = new Set();
 
     function getCardStep() {
       const card = carousel.querySelector(".card");
@@ -779,6 +809,28 @@
       return ((itemIndex - cloneCount) % realCards.length + realCards.length) % realCards.length;
     }
 
+    function createDotSpray(dot) {
+      const rect = dot.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+
+      for (let i = 0; i < 6; i += 1) {
+        const particle = document.createElement("span");
+        const angle = Math.random() * Math.PI * 2;
+        const distance = 10 + Math.random() * 22;
+
+        particle.className = "dot-spray";
+        particle.style.left = `${centerX}px`;
+        particle.style.top = `${centerY}px`;
+        particle.style.background = trailColors[(trailIndex + i) % trailColors.length];
+        particle.style.setProperty("--dot-x", `${Math.cos(angle) * distance}px`);
+        particle.style.setProperty("--dot-y", `${Math.sin(angle) * distance}px`);
+
+        document.body.appendChild(particle);
+        particle.addEventListener("animationend", () => particle.remove());
+      }
+    }
+
     function updateCarouselDots() {
       const carouselRect = carousel.getBoundingClientRect();
       const visibleIndexes = new Set();
@@ -793,8 +845,16 @@
       });
 
       dots.forEach((dot, index) => {
-        dot.classList.toggle("active", visibleIndexes.has(index));
+        const isActive = visibleIndexes.has(index);
+
+        if (isActive && !activeDotIndexes.has(index)) {
+          createDotSpray(dot);
+        }
+
+        dot.classList.toggle("active", isActive);
       });
+
+      activeDotIndexes = visibleIndexes;
     }
 
     function scrollToRealCard(index) {
