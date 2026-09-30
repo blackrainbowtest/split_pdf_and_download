@@ -182,13 +182,9 @@
 
     /* ===== CAROUSEL ===== */
     .carousel {
+      position: relative;
       width: min(980px, 100%);
       margin: 0 auto;
-    }
-
-    .carousel-track {
-      position: relative;
-      height: 178px;
       padding: 0 58px;
     }
 
@@ -199,7 +195,7 @@
       margin: 0 auto;
       overflow-x: auto;
       overflow-y: visible;
-      padding: 0 4px;
+      padding: 12px 4px 24px;
       scroll-behavior: smooth;
       scroll-snap-type: x mandatory;
       scrollbar-width: none;
@@ -220,7 +216,7 @@
 
     .carousel-btn {
       position: absolute;
-      top: 50%;
+      top: 12px;
       z-index: 6;
       display: grid;
       place-items: center;
@@ -234,7 +230,6 @@
       cursor: pointer;
       font-size: 30px;
       line-height: 1;
-      transform: translateY(-50%);
       transition:
         color 0.25s ease,
         border-color 0.25s ease,
@@ -253,7 +248,7 @@
     }
 
     .carousel-btn:active {
-      transform: translateY(-50%) scale(0.94);
+      transform: scale(0.94);
     }
 
     .carousel-btn.prev {
@@ -583,11 +578,6 @@
       }
 
       .carousel {
-        width: min(980px, 100%);
-      }
-
-      .carousel-track {
-        height: 188px;
         padding: 0 44px;
       }
 
@@ -634,43 +624,41 @@
     </header>
 
     <div class="carousel">
-      <div class="carousel-track">
-        <button class="carousel-btn prev" type="button" aria-label="Նախորդ գործիք">‹</button>
-        <div class="menu" id="tools-carousel">
-          <a href="data/merge.html" class="card">
-            <div class="card-title">Միացնել PDF</div>
-            <div class="card-desc">
-              Միացրեք մի քանի PDF ֆայլ մեկ փաստաթղթի մեջ
-            </div>
-          </a>
+      <button class="carousel-btn prev" type="button" aria-label="Նախորդ գործիք">‹</button>
+      <div class="menu" id="tools-carousel">
+        <a href="data/merge.html" class="card">
+          <div class="card-title">Միացնել PDF</div>
+          <div class="card-desc">
+            Միացրեք մի քանի PDF ֆայլ մեկ փաստաթղթի մեջ
+          </div>
+        </a>
 
-          <a href="data/split.html" class="card">
-            <div class="card-title">Բաժանել PDF</div>
-            <div class="card-desc">Տարանջատեք PDF-ը մասերի ըստ էջերի</div>
-          </a>
+        <a href="data/split.html" class="card">
+          <div class="card-title">Բաժանել PDF</div>
+          <div class="card-desc">Տարանջատեք PDF-ը մասերի ըստ էջերի</div>
+        </a>
 
-          <a href="data/rotate.html" class="card">
-            <div class="card-title">Պտտել PDF</div>
-            <div class="card-desc">Պտտեք էջերը 90° / 180° / 270°</div>
-          </a>
+        <a href="data/rotate.html" class="card">
+          <div class="card-title">Պտտել PDF</div>
+          <div class="card-desc">Պտտեք էջերը 90° / 180° / 270°</div>
+        </a>
 
-          <a href="data/pdf_to_word.html" class="card">
-            <div class="card-title">Վերափոխել PDF-ը WORD</div>
-            <div class="card-desc">Չի աշխատում սքաների հետ</div>
-          </a>
+        <a href="data/pdf_to_word.html" class="card">
+          <div class="card-title">Վերափոխել PDF-ը WORD</div>
+          <div class="card-desc">Չի աշխատում սքաների հետ</div>
+        </a>
 
-          <a href="data/cap_cat_pdf.html" class="card">
-            <div class="card-title">Խմբագրել PDF էջերը</div>
-            <div class="card-desc">Հեռացրեք դատարկ էջերը մեկ քլիկով</div>
-          </a>
+        <a href="data/cap_cat_pdf.html" class="card">
+          <div class="card-title">Խմբագրել PDF էջերը</div>
+          <div class="card-desc">Հեռացրեք դատարկ էջերը մեկ քլիկով</div>
+        </a>
 
-          <a href="data/number_to_letter.html" class="card">
-            <div class="card-title">Ձևափոխեք թվերը տառերի</div>
-            <div class="card-desc">Ստացեք թվային արժեքի տեքստային արտահայտությունը մեկ քլիկով</div>
-          </a>
-        </div>
-        <button class="carousel-btn next" type="button" aria-label="Հաջորդ գործիք">›</button>
+        <a href="data/number_to_letter.html" class="card">
+          <div class="card-title">Ձևափոխեք թվերը տառերի</div>
+          <div class="card-desc">Ստացեք թվային արժեքի տեքստային արտահայտությունը մեկ քլիկով</div>
+        </a>
       </div>
+      <button class="carousel-btn next" type="button" aria-label="Հաջորդ գործիք">›</button>
       <div class="carousel-dots" id="carousel-dots" aria-label="Տեսանելի գործիքներ"></div>
     </div>
 
