@@ -655,7 +655,8 @@
         }
 
         parts.push(getDigit(padded[1]));
-        return joinWords(...parts);
+        // return joinWords(...parts); // Добавляло пробел между десятками и единицами.
+        return parts.join("");
       }
 
       function getDigit(text) {
